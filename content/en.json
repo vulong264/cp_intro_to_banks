@@ -116,12 +116,12 @@
   "proof": {
     "headline": "Systems in production, measured.",
     "cards": [
-      { "status": "live", "since": "2026-04-10", "reference": true, "title": "T'FOX, AI investing assistant", "client": "{C:tps}", "statusText": "Live since 10 Apr 2026", "body": "72% of questions in scope; 48% of users return and drive 81% of traffic; every question traced across 31 intent classes." },
-      { "status": "poc", "since": "", "reference": true, "title": "Presight, governed AI analytics on-prem", "client": "{C:mbbank}", "statusText": "PoC completed successfully; v2 in build", "body": "Natural-language answers on governed metrics, inside the bank's data centre, with no data leaving the building. Built by our Head of AI Applications, delivered exclusively by CoderPush in Vietnam." },
-      { "status": "delivered", "since": "", "reference": false, "title": "Agent-driven development, handed over", "client": "{C:tpbank}", "statusText": "", "body": "The bank's own team now runs the method without us." },
-      { "status": "live", "since": "", "reference": false, "title": "Customer Data Platform on AWS", "client": "{C:tps}", "statusText": "", "body": "Under 5 minutes from event to CRM; every active client resolved to one profile." },
-      { "status": "delivered", "since": "", "reference": false, "title": "Deepfake detection on the phone", "client": "{C:ensign|Ensign, Singapore}", "statusText": "", "body": "MVP in 8 weeks; under 500 ms per check on a mid-range phone." },
-      { "status": "live", "since": "", "reference": false, "title": "AI ordering assistant", "client": "{C:buymed}", "statusText": "", "body": "35,000+ pharmacies and clinics; 40% faster order processing." }
+      { "key": "tfox", "status": "live", "since": "2026-04-10", "reference": true, "title": "T'FOX, AI investing assistant", "client": "{C:tps}", "statusText": "Live since 10 Apr 2026", "body": "72% of questions in scope; 48% of users return and drive 81% of traffic; every question traced across 31 intent classes." },
+      { "key": "presight", "status": "poc", "since": "", "reference": true, "title": "Presight, governed AI analytics on-prem", "client": "{C:mbbank}", "statusText": "PoC completed successfully; v2 in build", "body": "Natural-language answers on governed metrics, inside the bank's data centre, with no data leaving the building. Built by our Head of AI Applications, delivered exclusively by CoderPush in Vietnam." },
+      { "key": "agent-dev", "status": "delivered", "since": "", "reference": false, "title": "Agent-driven development, handed over", "client": "{C:tpbank}", "statusText": "", "body": "The bank's own team now runs the method without us." },
+      { "key": "cdp", "status": "live", "since": "", "reference": false, "title": "Customer Data Platform on AWS", "client": "{C:tps}", "statusText": "", "body": "Under 5 minutes from event to CRM; every active client resolved to one profile." },
+      { "key": "deepfake", "status": "delivered", "since": "", "reference": false, "title": "Deepfake detection on the phone", "client": "{C:ensign|Ensign, Singapore}", "statusText": "", "body": "MVP in 8 weeks; under 500 ms per check on a mid-range phone." },
+      { "key": "ordering", "status": "live", "since": "", "reference": false, "title": "AI ordering assistant", "client": "{C:buymed}", "statusText": "", "body": "35,000+ pharmacies and clinics; 40% faster order processing." }
     ]
   },
   "safety": {

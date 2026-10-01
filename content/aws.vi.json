@@ -1,0 +1,152 @@
+{
+  "hero": {
+    "aws": {
+      "subline": "CoderPush đưa các dự án AI thử nghiệm của ngân hàng thành workload vận hành thật trên AWS, bằng tiếng Việt, với dữ liệu lưu tại Việt Nam."
+    },
+    "proofStrip": {
+      "1": {
+        "text": "Presight PoC tại {c:mbbank}"
+      }
+    }
+  },
+  "pattern": {
+    "options": [
+      {
+        "key": "region"
+      },
+      {
+        "key": "localzone"
+      }
+    ],
+    "diagram": {
+      "store": "Kho dữ liệu phân tích · đã che thông tin cá nhân · AWS Local Zone Hà Nội",
+      "stateOnprem": null
+    }
+  },
+  "useCases": {
+    "headline": "Chín bài toán, mỗi bài toán đều được xây để chạy trên AWS.",
+    "lead": "Cùng một mô hình cho mọi bài toán: dữ liệu của ngân hàng ở lại Việt Nam, lớp trí tuệ chạy trên AWS, và người dùng làm việc với kết quả trên Amazon Quick hoặc ứng dụng sẵn có của ngân hàng.",
+    "labels": {
+      "aws": "Trên AWS",
+      "kpi": "KPI",
+      "proof": "Minh chứng"
+    },
+    "items": [
+      {
+        "key": "contact-centre",
+        "title": "Phân tích cuộc gọi tổng đài trên Quick",
+        "does": "Mọi cuộc gọi ghi âm được chuyển thành văn bản tiếng Việt trên AWS và gắn nhãn: ý định, khiếu nại, rủi ro tuân thủ, tín hiệu bán hàng. Cấp quản lý làm việc với kết quả trên Quick desktop, qua dashboard và hỏi đáp.",
+        "aws": "Chuyển giọng nói thành văn bản tại AWS Local Zone Hà Nội; AI agent gắn nhãn trên Amazon Bedrock, trên văn bản đã khử nhận dạng; Amazon Quick là giao diện"
+      },
+      {
+        "key": "sales-call-compliance",
+        "title": "Giám sát tuân thủ cuộc gọi bán bảo hiểm và sản phẩm đầu tư",
+        "does": "Mọi cuộc tư vấn bán hàng có ghi âm đều được đối chiếu với nội dung bắt buộc phải công bố và kịch bản đã phê duyệt. Bộ phận tuân thủ rà soát các trường hợp ngoại lệ trên Quick, thay vì nghe mẫu một số cuộc gọi.",
+        "aws": "Chuyển giọng nói thành văn bản tại AWS Local Zone Hà Nội; AI agent đối chiếu trên Amazon Bedrock; các trường hợp ngoại lệ hiển thị trên Amazon Quick",
+        "kpi": "Tỷ lệ cuộc gọi bán hàng được kiểm tra; số sai sót phát hiện trước khi có khiếu nại"
+      },
+      {
+        "key": "rm-assistant",
+        "from": "rm-copilot",
+        "aws": "Nền tảng dữ liệu khách hàng (CDP) trên AWS; bản tóm tắt được soạn trên Amazon Bedrock; hiển thị ngay trong CRM của ngân hàng"
+      },
+      {
+        "key": "credit-memo",
+        "aws": "Báo cáo tài chính lưu trên Amazon S3; đọc, đối chiếu và soạn thảo trên Amazon Bedrock"
+      },
+      {
+        "key": "knowledge-assistant",
+        "title": "Trợ lý tra cứu quy định và sản phẩm cho nhân viên chi nhánh",
+        "does": "Nhân viên hỏi bằng tiếng Việt về sản phẩm, quy định và quy trình. Mỗi câu trả lời đều dẫn nguồn đến trang tài liệu gốc và chỉ dựa trên tài liệu ngân hàng đã phê duyệt.",
+        "aws": "Tài liệu lưu trên Amazon S3; Amazon Bedrock Knowledge Bases; hỏi đáp trên Amazon Quick",
+        "kpi": "Thời gian trả lời một câu hỏi về quy định; số cuộc gọi đến bộ phận hỗ trợ nội bộ"
+      },
+      {
+        "key": "governed-analytics",
+        "aws": "Bộ chỉ số đã được phê duyệt trên nền tảng dữ liệu của ngân hàng; trả lời câu hỏi trên Amazon Bedrock; Amazon Quick là giao diện",
+        "proof": "Presight PoC tại {c:mbbank}"
+      },
+      {
+        "key": "investment-assistant",
+        "aws": "Chạy trong tài khoản AWS của chính công ty chứng khoán. T'FOX là workload đầu tiên của {c:tps} trên AWS"
+      },
+      {
+        "key": "ai-law-evidence",
+        "title": "Kiểm kê hệ thống AI và bộ hồ sơ tuân thủ theo Luật AI",
+        "does": "Mọi hệ thống AI của ngân hàng được kiểm kê kèm mức rủi ro, nhật ký hệ thống, cơ chế con người can thiệp và nút dừng khẩn cấp; hồ sơ luôn được cập nhật giữa các đợt kiểm tra.",
+        "aws": "Nhật ký từ AWS CloudTrail và Amazon CloudWatch; Amazon Bedrock Guardrails; danh mục hệ thống hiển thị trên Amazon Quick",
+        "kpi": "Số hệ thống AI đã kiểm kê và phân loại; thời gian đáp ứng yêu cầu của cơ quan quản lý",
+        "proof": "Mọi hệ thống chúng tôi bàn giao đều kèm bộ hồ sơ tuân thủ"
+      },
+      {
+        "key": "ai-native-engineering",
+        "title": "Phát triển phần mềm AI-native cho khối CNTT, với Kiro",
+        "does": "Kỹ sư của ngân hàng phát triển phần mềm từ bản đặc tả cùng AI agent, và mỗi thay đổi đều có một kỹ sư chịu trách nhiệm rà soát. Chúng tôi làm việc cùng đội ngũ, rồi chuyển giao phương pháp.",
+        "aws": "Kiro cho phát triển phần mềm theo bản đặc tả, ngay trên kho mã nguồn của ngân hàng",
+        "kpi": "Thời gian từ bản đặc tả đến khi phát hành",
+        "proof": "{C:tpbank}: đội ngũ của ngân hàng giờ tự vận hành phương pháp này mà không cần chúng tôi"
+      }
+    ]
+  },
+  "aws": {
+    "when": {
+      "items": {
+        "2": "Dữ liệu phải nằm tại Việt Nam."
+      }
+    },
+    "engage": {
+      "questions": {
+        "1": "Dữ liệu phải nằm ở đâu: một AWS Region hay chỉ tại Việt Nam?"
+      }
+    }
+  },
+  "proof": {
+    "cards": [
+      {
+        "key": "tfox"
+      },
+      {
+        "key": "cdp"
+      },
+      {
+        "key": "agent-dev"
+      },
+      {
+        "key": "presight",
+        "title": "Presight, phân tích dữ liệu AI có quản trị",
+        "body": "Trả lời bằng ngôn ngữ tự nhiên trên bộ chỉ số có quản trị. Do Trưởng bộ phận Ứng dụng AI của chúng tôi xây dựng, CoderPush là đơn vị triển khai độc quyền tại Việt Nam."
+      },
+      {
+        "key": "ordering"
+      },
+      {
+        "key": "deepfake"
+      }
+    ]
+  },
+  "faq": {
+    "headline": "Ngân hàng sẽ hỏi gì, và chúng tôi trả lời thế nào.",
+    "items": [
+      {
+        "key": "data-location",
+        "a": "Ở nơi ngân hàng quyết định: một AWS Region hoặc AWS Local Zone Hà Nội. Dữ liệu cá nhân được khử nhận dạng trước khi bất kỳ dữ liệu nào rời khỏi hệ thống của ngân hàng."
+      },
+      {
+        "key": "ownership"
+      },
+      {
+        "key": "contract"
+      },
+      {
+        "key": "aws-funding"
+      },
+      {
+        "key": "time-to-live"
+      },
+      {
+        "key": "security-review",
+        "a": "CoderPush đạt chứng nhận ISO/IEC 27001. Chúng tôi làm việc bên trong tài khoản AWS của ngân hàng, theo chính sách truy cập của ngân hàng, mọi thao tác đều được ghi nhật ký, và bộ tài liệu phục vụ thẩm định có kèm chứng chỉ cùng phạm vi chứng nhận."
+      }
+    ]
+  }
+}

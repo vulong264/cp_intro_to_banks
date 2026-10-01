@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="en"{{#if gen.aws}} data-door="aws"{{/if}}>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -8,32 +8,35 @@
   var d = document.documentElement, q = new URLSearchParams(location.search), l = q.get('lang');
   if (l !== 'en' && l !== 'vi') l = /^vi\b/i.test(navigator.language || '') ? 'vi' : 'en';
   d.lang = l;
-  if (q.get('door') === 'aws') d.setAttribute('data-door', 'aws');
-  if ((q.get('for') || '').trim()) d.setAttribute('data-for', '');
-  window.__b = /\/banks$/.test(location.pathname) ? '/banks/' : '';
+{{#unless gen.aws}}  if (q.get('door') === 'aws') d.setAttribute('data-door', 'aws');
+{{/unless}}  if ((q.get('for') || '').trim()) d.setAttribute('data-for', '');
+  var pp = '{{v gen.page.path}}';
+  window.__b = location.pathname.slice(-pp.length) === pp ? pp + '/' : '';
   d.classList.add('js');
 })();
 </script>
 {{#in en}}
 <title>{{a meta.title}}</title>
-<meta name="description" content="{{a hero.bank.subline}}">
-<link rel="canonical" href="https://coderpush.com/banks">
+<meta name="description" content="{{a gen.meta.description}}">
+<link rel="canonical" href="{{v gen.page.url}}">
+{{#if gen.page.noindex}}<meta name="robots" content="noindex">
+{{/if}}
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="CoderPush">
 <meta property="og:title" content="{{a meta.title}}">
-<meta property="og:description" content="{{a hero.bank.subline}}">
-<meta property="og:url" content="https://coderpush.com/banks">
-<meta property="og:image" content="https://coderpush.com/banks/og-banks.png">
+<meta property="og:description" content="{{a gen.meta.description}}">
+<meta property="og:url" content="{{v gen.page.url}}">
+<meta property="og:image" content="{{v gen.page.og}}">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="{{a hero.bank.headline}}">
+<meta property="og:image:alt" content="{{a gen.meta.headline}}">
 <meta property="og:locale" content="en_US">
 <meta property="og:locale:alternate" content="vi_VN">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="{{a meta.title}}">
-<meta name="twitter:description" content="{{a hero.bank.subline}}">
-<meta name="twitter:image" content="https://coderpush.com/banks/og-banks.png">
-<meta name="twitter:image:alt" content="{{a hero.bank.headline}}">
+<meta name="twitter:description" content="{{a gen.meta.description}}">
+<meta name="twitter:image" content="{{v gen.page.og}}">
+<meta name="twitter:image:alt" content="{{a gen.meta.headline}}">
 {{/in}}
 <meta name="theme-color" content="#0A0A0A">
 <meta name="color-scheme" content="dark">
@@ -41,10 +44,26 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="{{v gen.fontsHref}}">
+<script>
+(function () {
+  // Geist arrives in parts (Latin, extended Latin, Vietnamese). Swapping as each part lands re-wraps long
+  // Vietnamese lines more than once, so the page stays in the fallback until the parts it needs are all
+  // here, then swaps once. See the rule for .js:not(.fr) below.
+  var d = document, h = d.documentElement;
+  function done() { h.classList.add('fr'); }
+  if (!d.fonts || !d.fonts.load || !window.requestAnimationFrame) { done(); return; }
+  var s = h.lang === 'vi' ? 'Aa1 \u0103\u0111\u01A1\u01B0 \u1EA1\u1EBF\u1ECD\u1EEF' : 'Aa1';
+  function go() { Promise.all([d.fonts.load('400 1em Geist', s), d.fonts.load('600 1em Geist', s)]).then(done, done); }
+  // The request starts right after the first frame, so the font never holds up the first paint. A tab
+  // opened in the background draws no frames, so there it starts at once.
+  if (d.visibilityState === 'hidden') go(); else requestAnimationFrame(function () { setTimeout(go, 0); });
+})();
+</script>
 <style>
-/* Local fallbacks scaled to Geist's widths (measured on the hero text), so text wraps the same before and after the web font arrives. */
-@font-face { font-family: 'Geist Fallback'; font-weight: 400 500; src: local('Arial'), local('ArialMT'), local('Roboto'), local('Roboto-Regular'), local('Helvetica Neue'), local('HelveticaNeue'); size-adjust: 101.5%; }
-@font-face { font-family: 'Geist Fallback'; font-weight: 600 700; src: local('Arial Bold'), local('Arial-BoldMT'), local('Roboto Bold'), local('Roboto-Bold'), local('Helvetica Neue Bold'), local('HelveticaNeue-Bold'); size-adjust: 99%; }
+/* Local fallbacks scaled to Geist's widths (measured on the hero text) and given Geist's height above and below the
+   baseline (1.01 and 0.29 of the font size), so text sits and wraps the same before and after the web font arrives. */
+@font-face { font-family: 'Geist Fallback'; font-weight: 400 500; src: local('Arial'), local('ArialMT'), local('Roboto'), local('Roboto-Regular'), local('Helvetica Neue'), local('HelveticaNeue'); size-adjust: 101.5%; ascent-override: 99.5%; descent-override: 28.6%; line-gap-override: 0%; }
+@font-face { font-family: 'Geist Fallback'; font-weight: 600 700; src: local('Arial Bold'), local('Arial-BoldMT'), local('Roboto Bold'), local('Roboto-Bold'), local('Helvetica Neue Bold'), local('HelveticaNeue-Bold'); size-adjust: 99%; ascent-override: 102%; descent-override: 29.3%; line-gap-override: 0%; }
 :root {
   --bg: #0A0A0A; --bg2: #111111; --card: #161616; --line: #262626;
   --tx: #F5F5F5; --tx2: #A3A3A3; --tx3: #8A8A8A; --ac: #81C828; --on: #0A0A0A;
@@ -52,6 +71,8 @@
   --lh: 1.6; --lhh: 1.05; --measure: 29em;
   color-scheme: dark;
 }
+/* Until every part of Geist this page needs has arrived, text stays in the fallback (see the script above). */
+.js:not(.fr) { --f: 'Geist Fallback', system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif; }
 html[lang=vi] { --lh: 1.7; --lhh: 1.15; }
 *, *::before, *::after { box-sizing: border-box; }
 html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
@@ -169,22 +190,23 @@ html[lang=vi] .sub { line-height: 1.7; }
 .opts label { display: inline-flex; align-items: center; gap: 8px; min-height: 40px; padding: 8px 16px; border: 1px solid var(--line); border-radius: 999px; font-weight: 500; font-size: 14px; line-height: 1.3; color: var(--tx2); cursor: pointer; transition: border-color .2s ease-out, color .2s ease-out; }
 .opts label:hover { color: var(--tx); }
 .o-dot { flex: none; width: 10px; height: 10px; border-radius: 50%; border: 1px solid var(--tx3); }
-#dep-region:checked ~ .opts [for=dep-region], #dep-localzone:checked ~ .opts [for=dep-localzone], #dep-onprem:checked ~ .opts [for=dep-onprem] { border-color: var(--ac); color: var(--tx); }
-#dep-region:checked ~ .opts [for=dep-region] .o-dot, #dep-localzone:checked ~ .opts [for=dep-localzone] .o-dot, #dep-onprem:checked ~ .opts [for=dep-onprem] .o-dot { background: var(--ac); border-color: var(--ac); }
-#dep-region:focus-visible ~ .opts [for=dep-region], #dep-localzone:focus-visible ~ .opts [for=dep-localzone], #dep-onprem:focus-visible ~ .opts [for=dep-onprem] { outline: 2px solid var(--ac); outline-offset: 2px; }
-.cap { display: none; color: var(--tx2); margin-bottom: 32px; }
-#dep-region:checked ~ .caps .cap-region, #dep-localzone:checked ~ .caps .cap-localzone, #dep-onprem:checked ~ .caps .cap-onprem { display: block; }
+/* One set of rules per deployment option in the copy, so a page without an option carries none of its rules. */
+{{#each pattern.options as o}}#dep-{{v o.key}}:checked ~ .opts [for=dep-{{v o.key}}] { border-color: var(--ac); color: var(--tx); }
+#dep-{{v o.key}}:checked ~ .opts [for=dep-{{v o.key}}] .o-dot { background: var(--ac); border-color: var(--ac); }
+#dep-{{v o.key}}:focus-visible ~ .opts [for=dep-{{v o.key}}] { outline: 2px solid var(--ac); outline-offset: 2px; }
+#dep-{{v o.key}}:checked ~ .caps .cap-{{v o.key}} { display: block; }
+{{/each}}.cap { display: none; color: var(--tx2); margin-bottom: 32px; }
 .dg { background: var(--bg); border: 1px solid var(--line); border-radius: 16px; padding: 24px 16px; }
 .dg-cap { display: flex; flex-direction: column; gap: 4px; margin-bottom: 16px; }
 .dg-cap strong { font-weight: 600; font-size: 17px; }
 .dg-cap > span { color: var(--tx2); font-size: 15px; }
 .lg { display: flex; align-items: center; gap: 8px; margin-bottom: 24px; font-weight: 500; font-size: 12px; line-height: 1.5; color: var(--ac); max-width: none; }
 .lg::before { content: ""; flex: none; width: 24px; border-top: 1px dashed var(--ac); }
-#dep-onprem:checked ~ .dg .lg { display: none; }
-.dg-grid { display: grid; gap: 16px; }
+{{#unless gen.aws}}#dep-onprem:checked ~ .dg .lg { display: none; }
+{{/unless}}.dg-grid { display: grid; gap: 16px; }
 .dg-main { position: relative; padding: 32px 16px 16px; border: 1px dashed transparent; border-radius: 12px; min-width: 0; }
-#dep-onprem:checked ~ .dg .dg-main { border-color: var(--ac); }
-.fl { display: none; position: absolute; top: 0; left: 16px; transform: translateY(-50%); padding: 0 8px; background: var(--bg); font-weight: 500; font-size: 12px; line-height: 1.5; color: var(--ac); }
+{{#unless gen.aws}}#dep-onprem:checked ~ .dg .dg-main { border-color: var(--ac); }
+{{/unless}}.fl { display: none; position: absolute; top: 0; left: 16px; transform: translateY(-50%); padding: 0 8px; background: var(--bg); font-weight: 500; font-size: 12px; line-height: 1.5; color: var(--ac); }
 .dg-l { position: relative; }
 .ln { font-weight: 500; font-size: 12px; line-height: 1.5; color: var(--tx2); margin-bottom: 8px; }
 .dg-l2 .ln { max-width: calc(50% - 16px); }
@@ -195,16 +217,17 @@ html[lang=vi] .bx { line-height: 1.6; }
 .bx b .ic { margin-right: 8px; vertical-align: -3px; }
 .nt { display: none; font-weight: 500; font-size: 12px; line-height: 1.5; font-style: normal; color: var(--ac); }
 .dg-l > .nt { margin-top: 8px; }
-#dep-region:checked ~ .dg .s-rg, #dep-localzone:checked ~ .dg .s-lz, #dep-onprem:checked ~ .dg .s-op { display: block; }
+#dep-region:checked ~ .dg .s-rg, #dep-localzone:checked ~ .dg .s-lz { display: block; }
+{{#unless gen.aws}}#dep-onprem:checked ~ .dg .s-op { display: block; }
 #dep-onprem:checked ~ .dg .bx-q { border-style: dashed; background: transparent; }
 #dep-onprem:checked ~ .dg .bx-q b, #dep-onprem:checked ~ .dg .bx-q span { color: var(--tx3); }
-.gut { position: relative; height: 64px; }
+{{/unless}}.gut { position: relative; height: 64px; }
 .bd { position: absolute; left: 0; right: 0; top: 50%; border-top: 1px dashed var(--ac); }
 .bd-r, .bd-v { display: none; }
 #dep-region:checked ~ .dg .g2 .bd { right: 50%; }
 #dep-region:checked ~ .dg .bd-r { display: block; left: 50%; }
-#dep-onprem:checked ~ .dg .g2 .bd { display: none; }
-.bd-v { position: absolute; left: 50%; top: -32px; bottom: -32px; border-left: 1px dashed var(--ac); }
+{{#unless gen.aws}}#dep-onprem:checked ~ .dg .g2 .bd { display: none; }
+{{/unless}}.bd-v { position: absolute; left: 50%; top: -32px; bottom: -32px; border-left: 1px dashed var(--ac); }
 #dep-region:checked ~ .dg .bd-v { display: block; }
 .ar { position: absolute; top: 0; bottom: 0; left: 25%; width: 0; }
 .ar.r { left: 75%; }
@@ -238,6 +261,10 @@ html[lang=vi] .bx { line-height: 1.6; }
 .ch { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
 .tag { display: none; align-self: flex-start; padding: 4px 8px; border-radius: 999px; background: var(--ac); color: var(--on); font-weight: 500; font-size: 12px; line-height: 1.4; }
 .picked { border-color: rgba(129, 200, 40, .5); }
+/* On the AWS page each use case names what runs on AWS, and each row carries its label. */
+.kl { display: block; font-weight: 500; font-size: 12px; line-height: 1.5; color: var(--tx3); }
+.kv.on-aws { color: var(--tx); }
+.kv.on-aws + .kv, .kv.on-aws ~ .kv { margin-top: 0; }
 .picked .tag { display: inline-block; }
 .chk li { display: flex; gap: 16px; padding: 16px; background: var(--card); border: 1px solid var(--line); border-radius: 12px; }
 .chk .ic { margin-top: 5px; }
@@ -337,7 +364,7 @@ html:not(.js) .vp, html:not(.js) [data-video] { display: none; }
 
 /* Print, and the PDF the build makes from this page: light paper, every part shown, nothing that needs a click.
    The green is a darker shade of the brand green, so that it reads as text on white. */
-@page { size: A4; margin: 12mm 12mm 16mm; @bottom-left { content: "coderpush.com/banks"; font: 500 8pt/1 Geist, sans-serif; color: #5C5C5C; } @bottom-right { content: counter(page) " / " counter(pages); font: 500 8pt/1 Geist, sans-serif; color: #5C5C5C; } }
+@page { size: A4; margin: 12mm 12mm 16mm; @bottom-left { content: "coderpush.com{{v gen.page.path}}"; font: 500 8pt/1 Geist, sans-serif; color: #5C5C5C; } @bottom-right { content: counter(page) " / " counter(pages); font: 500 8pt/1 Geist, sans-serif; color: #5C5C5C; } }
 @media print {
   :root { --bg: #fff; --bg2: #fff; --card: #fff; --line: #D4D4D4; --tx: #0A0A0A; --tx2: #404040; --tx3: #5C5C5C; --ac: #4B7811; --on: #fff; color-scheme: light; }
   html { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
@@ -472,18 +499,18 @@ html:not(.js) .vp, html:not(.js) [data-video] { display: none; }
 <div class="w">
 <ul class="creds">{{#each gen.creds as c}}{{#if c.badge}}<li class="has-badge"><span class="logo L-{{v c.badge}}" aria-hidden="true"></span><span class="vh">{{t c.text}}</span></li>{{else}}<li><svg class="ic" aria-hidden="true"><use href="#i-{{v c.icon}}"/></svg><span>{{t c.text}}</span></li>{{/if}}{{/each}}</ul>
 <p class="pf">{{r gen.preparedFor}} <a href="#privacy">{{t ui.privacyLink}}</a></p>
-<h1 class="d-bank">{{t hero.bank.headline}}</h1>
-<h1 class="d-aws">{{t hero.aws.headline}}</h1>
-<div class="hr{{#if cfg.flags.videoReady}} has-v{{/if}}">
+{{#unless gen.aws}}<h1 class="d-bank">{{t hero.bank.headline}}</h1>
+{{/unless}}<h1 class="d-aws">{{t hero.aws.headline}}</h1>
+<div class="hr{{#if gen.film}} has-v{{/if}}">
 <div class="hm">
-<div class="d-bank">
+{{#unless gen.aws}}<div class="d-bank">
 <p class="sub">{{t hero.bank.subline}}</p>
 <div class="btns">
 {{#lang}}<a class="btn {{@lang}}" href="{{a gen.href.book}}"{{#if cfg.links.booking}} target="_blank" rel="noopener"{{/if}} data-cta="hero-book">{{t hero.bank.book}}<svg class="ic" aria-hidden="true"><use href="#i-arrow"/></svg></a>{{/lang}}
-{{#if cfg.flags.videoReady}}<a class="btn btn2" href="{{v gen.video.file}}" data-file="{{v gen.video.file}}" data-video data-cta="hero-video"><svg class="ic l" aria-hidden="true"><use href="#i-play"/></svg>{{t hero.bank.video}}</a>{{/if}}
+{{#if gen.film}}<a class="btn btn2" href="{{v gen.video.file}}" data-file="{{v gen.video.file}}" data-video data-cta="hero-video"><svg class="ic l" aria-hidden="true"><use href="#i-play"/></svg>{{t hero.bank.video}}</a>{{/if}}
 </div>
 </div>
-<div class="d-aws">
+{{/unless}}<div class="d-aws">
 <p class="sub">{{t hero.aws.subline}}</p>
 <p class="why">{{t hero.aws.whyNow}}</p>
 <div class="btns">
@@ -493,7 +520,7 @@ html:not(.js) .vp, html:not(.js) [data-video] { display: none; }
 </div>
 <ul class="strip">{{#each hero.proofStrip as s}}<li{{#if s.live}} class="live"{{/if}}><span class="dot"></span><span>{{t s.text}}</span></li>{{/each}}</ul>
 </div>
-{{#if cfg.flags.videoReady}}<a class="vp" href="{{v gen.video.file}}" data-file="{{v gen.video.file}}" data-video data-cta="poster-video">
+{{#if gen.film}}<a class="vp" href="{{v gen.video.file}}" data-file="{{v gen.video.file}}" data-video data-cta="poster-video">
 <img data-file="{{v gen.video.poster}}" alt="" width="960" height="540">
 <span class="vp-play" aria-hidden="true"><svg class="ic"><use href="#i-play"/></svg></span>
 <span class="vp-time" aria-hidden="true">{{v gen.video.duration}}</span>
@@ -504,7 +531,14 @@ html:not(.js) .vp, html:not(.js) [data-video] { display: none; }
 </section>
 {{#if gen.clientLogos}}<div class="lw"><div class="w"><ul class="lwp rv">{{#each gen.clientLogos as c}}<li>{{#if c.logo}}<span class="logo L-{{v c.logo}}" role="img" aria-label="{{v c.name}}"></span>{{else}}<span class="wmk">{{v c.name}}</span>{{/if}}</li>{{/each}}</ul></div></div>{{/if}}
 
-<section class="sec alt" id="gap" data-sec="gap">
+{{#if gen.aws}}<section class="sec" id="when" data-sec="when">
+<div class="w">
+<h2 class="rv">{{t aws.when.headline}}</h2>
+<ul class="grid chk">{{#each aws.when.items as x}}<li class="rv"><svg class="ic" aria-hidden="true"><use href="#i-checkc"/></svg><span>{{t x}}</span></li>{{/each}}</ul>
+</div>
+</section>
+
+{{/if}}<section class="sec alt" id="gap" data-sec="gap">
 <div class="w">
 <h2 class="rv">{{t gap.headline}}</h2>
 <div class="nums">
@@ -546,15 +580,15 @@ html:not(.js) .vp, html:not(.js) [data-video] { display: none; }
 <p class="lg"><span>{{t pattern.diagram.boundary}}</span></p>
 <div class="dg-grid">
 <div class="dg-main">
-<p class="fl s-op">{{t gen.dg.onprem.0}}</p>
-<div class="dg-l dg-l3">
+{{#unless gen.aws}}<p class="fl s-op">{{t gen.dg.onprem.0}}</p>
+{{/unless}}<div class="dg-l dg-l3">
 <p class="ln">{{t pattern.diagram.top}}</p>
 <div class="bx2">
-<div class="bx bx-q"><b><svg class="ic" aria-hidden="true"><use href="#i-dash"/></svg>{{t gen.dg.quick.0}}</b><span>{{t gen.dg.quick.1}}</span><span>{{t gen.dg.quick.2}}</span><em class="nt s-op">{{t gen.dg.onprem.1}}</em></div>
+<div class="bx bx-q"><b><svg class="ic" aria-hidden="true"><use href="#i-dash"/></svg>{{t gen.dg.quick.0}}</b><span>{{t gen.dg.quick.1}}</span><span>{{t gen.dg.quick.2}}</span>{{#unless gen.aws}}<em class="nt s-op">{{t gen.dg.onprem.1}}</em>{{/unless}}</div>
 <div class="bx"><b><svg class="ic" aria-hidden="true"><use href="#i-users"/></svg>{{t gen.dg.apps.0}}</b><span>{{t gen.dg.apps.1}}</span></div>
 </div>
-<p class="nt s-op">{{t gen.dg.onprem.2}}</p>
-</div>
+{{#unless gen.aws}}<p class="nt s-op">{{t gen.dg.onprem.2}}</p>
+{{/unless}}</div>
 <div class="gut g2">
 <div class="bd"></div>
 <span class="ar a3"><svg viewBox="0 0 12 64" aria-hidden="true"><path pathLength="1" d="M6 60V5"/><path pathLength="1" d="M1.5 9.5 6 4l4.5 5.5"/></svg><i>{{t gen.dg.arrows.3}}</i></span>
@@ -595,7 +629,19 @@ html:not(.js) .vp, html:not(.js) [data-video] { display: none; }
 
 <section class="sec" id="usecases" data-sec="use-cases">
 <div class="w">
-<div class="d-bank">
+{{#if gen.aws}}<h2 class="rv">{{t useCases.headline}}</h2>
+<p class="lead rv">{{t useCases.lead}}</p>
+<div class="grid ucs">
+{{#each gen.useCases as u}}<article class="card uc rv" data-uc="{{v u.key}}">
+<div class="ch"><span class="it"><svg class="ic" aria-hidden="true"><use href="#i-{{v u.icon}}"/></svg></span><span class="tag">{{t ui.picked}}</span></div>
+<h3>{{t u.title}}</h3>
+<p class="d">{{t u.does}}</p>
+<p class="kv kpi on-aws"><svg class="ic" aria-hidden="true"><use href="#i-cloud"/></svg><span><b class="kl">{{t useCases.labels.aws}}</b>{{t u.aws}}</span></p>
+<p class="kv"><svg class="ic" aria-hidden="true"><use href="#i-trend"/></svg><span><b class="kl">{{t useCases.labels.kpi}}</b>{{t u.kpi}}</span></p>
+{{#if u.proof}}<p class="kv"><svg class="ic" aria-hidden="true"><use href="#i-checkc"/></svg><span><b class="kl">{{t useCases.labels.proof}}</b>{{t u.proof}}</span></p>{{/if}}
+</article>
+{{/each}}</div>
+{{else}}<div class="d-bank">
 <h2 class="rv">{{t useCases.headline}}</h2>
 <div class="grid ucs">
 {{#each gen.useCases as u}}<article class="card uc rv" data-uc="{{v u.key}}">
@@ -611,7 +657,7 @@ html:not(.js) .vp, html:not(.js) [data-video] { display: none; }
 <h2 class="rv">{{t aws.when.headline}}</h2>
 <ul class="grid chk">{{#each aws.when.items as x}}<li class="rv"><svg class="ic" aria-hidden="true"><use href="#i-checkc"/></svg><span>{{t x}}</span></li>{{/each}}</ul>
 </div>
-</div>
+{{/if}}</div>
 </section>
 
 <section class="sec alt" id="proof" data-sec="proof">
@@ -660,14 +706,14 @@ html:not(.js) .vp, html:not(.js) [data-video] { display: none; }
 
 <section class="sec" id="offer" data-sec="offer">
 <div class="w">
-<div class="d-bank">
+{{#unless gen.aws}}<div class="d-bank">
 <h2 class="rv">{{t offer.headline}}</h2>
 <ol class="phases">{{#each gen.phases as f}}<li class="rv"><span class="it"><svg class="ic" aria-hidden="true"><use href="#i-{{v f.icon}}"/></svg></span><h3>{{t f.title}}</h3><p>{{t f.body}}</p></li>{{/each}}</ol>
 <p class="line rv">{{t offer.line}}</p>
 <ul class="chips rv">{{#each gen.waysIn as x}}<li><svg class="ic" aria-hidden="true"><use href="#i-{{v x.icon}}"/></svg><span>{{t x.text}}</span></li>{{/each}}</ul>
 <div class="btns">{{#lang}}<a class="btn {{@lang}}" href="{{a gen.href.book}}"{{#if cfg.links.booking}} target="_blank" rel="noopener"{{/if}} data-cta="offer-book">{{t offer.button}}<svg class="ic" aria-hidden="true"><use href="#i-arrow"/></svg></a>{{/lang}}</div>
 </div>
-<div class="d-aws">
+{{/unless}}<div class="d-aws">
 <h2 class="rv">{{t aws.engage.headline}}</h2>
 <ul class="eng rv">
 <li>{{t aws.engage.share}}</li>
@@ -682,7 +728,8 @@ html:not(.js) .vp, html:not(.js) [data-video] { display: none; }
 
 <section class="sec alt" id="faq" data-sec="faq">
 <div class="w">
-<div class="faq rv">{{#each faq.items as q}}<details data-faq="{{v q.key}}"><summary><span>{{t q.q}}</span></summary><p>{{t q.a}}</p></details>{{/each}}</div>
+{{#if faq.headline}}<h2 class="rv">{{t faq.headline}}</h2>
+{{/if}}<div class="faq rv">{{#each faq.items as q}}<details data-faq="{{v q.key}}"><summary><span>{{t q.q}}</span></summary><p>{{t q.a}}</p></details>{{/each}}</div>
 <div class="btns">{{#lang}}<a class="btn {{@lang}}" href="{{a gen.href.intro}}"{{#if cfg.links.booking}} target="_blank" rel="noopener"{{/if}} data-cta="faq-intro">{{t faq.button}}<svg class="ic" aria-hidden="true"><use href="#i-arrow"/></svg></a>{{/lang}}{{#if cfg.flags.profilePdf}}<a class="btn btn2" href="{{v gen.pdf.file}}" data-pdf="{{v gen.pdf.stem}}" download data-cta="faq-pdf"><svg class="ic l" aria-hidden="true"><use href="#i-download"/></svg>{{t ui.downloadPdf}}</a>{{/if}}</div>
 </div>
 </section>
@@ -703,7 +750,7 @@ html:not(.js) .vp, html:not(.js) [data-video] { display: none; }
 </div>
 </div>
 </footer>
-{{#if cfg.flags.videoReady}}
+{{#if gen.film}}
 <dialog class="vd" id="vid" aria-labelledby="vid-t">
 <p class="vh" id="vid-t">{{t hero.bank.video}}</p>
 <div class="vs" data-film="{{v gen.video.file}}?autoplay=0" data-poster="{{v gen.video.poster}}"></div>
@@ -772,13 +819,14 @@ html:not(.js) .vp, html:not(.js) [data-video] { display: none; }
       all('[data-lang-btn]').forEach(function (b) { b.setAttribute('aria-pressed', String(b.getAttribute('data-lang-btn') === lang())); });
       // The PDF link follows the language and the door in view.
       all('[data-pdf]').forEach(function (a) {
-        a.setAttribute('href', (W.__b || '') + a.getAttribute('data-pdf') + (door() === 'aws' ? 'aws-' : '') + lang() + '.pdf');
+        a.setAttribute('href', (W.__b || '') + a.getAttribute('data-pdf') + {{#unless gen.aws}}(door() === 'aws' ? 'aws-' : '') + {{/unless}}lang() + '.pdf');
       });
     }
     function setUrl() {
       var q = location.search.replace(/^\?/, '').split('&').filter(function (p) { return p && !/^(lang|door)=/.test(p); });
       q.push('lang=' + lang());
-      if (door() === 'aws') q.push('door=aws');
+{{#unless gen.aws}}      if (door() === 'aws') q.push('door=aws');
+{{/unless}}
       try { history.replaceState(history.state, '', '?' + q.join('&') + location.hash); } catch (e) {}
     }
     function anchor() {
@@ -882,8 +930,8 @@ html:not(.js) .vp, html:not(.js) [data-video] { display: none; }
 
     // Deployment selector: the choice sits in the URL hash.
     var radios = all('input[name=deploy]');
-    var hm = location.hash.match(/deploy=(region|localzone|onprem)/);
-    if (hm) radios.forEach(function (r) { r.checked = r.value === hm[1]; });
+    var hm = location.hash.match(/deploy=([a-z]+)/);
+    if (hm && radios.some(function (r) { return r.value === hm[1]; })) radios.forEach(function (r) { r.checked = r.value === hm[1]; });
     radios.forEach(function (r) {
       r.addEventListener('change', function () {
         if (!r.checked) return;
