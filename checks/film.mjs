@@ -59,6 +59,7 @@ try {
   }
   check('the keyboard is inside the film', st.active === 'film', st.active);
   check("the film's button carries the page's booking link", st.cta === await p.eval(`document.querySelector('[data-cta="faq-intro"].en').getAttribute('href')`), st.cta);
+  check('inside the player, a booking page opens in a new tab and an email does not', /^https?:/.test(st.cta) ? st.ctaTarget === '_blank' : st.ctaTarget === null, `${st.cta} target ${st.ctaTarget}`);
   const t1 = (await p.frameEval('banks-film', FILM_STATE)).time; await sleep(1500); const t2 = (await p.frameEval('banks-film', FILM_STATE)).time;
   check('the picture runs', t1 !== t2, `${t1} then ${t2}`);
   const geo = await p.eval(PAGE_STATE);
