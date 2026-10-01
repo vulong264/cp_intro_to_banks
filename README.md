@@ -27,6 +27,11 @@ It writes into dist/:
 | HANDOVER.md | The note for the web team: where the files go, routing, analytics, what to test |
 | og-banks.png | The link-preview image, when a local Chrome or Playwright is available |
 | banks-film.html, banks-film-poster.webp | The overview film and its poster, while flags.videoReady is on |
+| coderpush-banks-profile-*.pdf | The page as a PDF for A4 paper, one per language and door, while flags.profilePdf is on |
+
+The PDFs are printed from the finished page with a local Chrome, so a build with flags.profilePdf on
+needs Chrome and a network connection for the font. How they look is decided by the print styles in
+template.html (`@media print`), which also serve a visitor who prints the page from the browser.
 
 Options: `--no-og` skips the preview image, `--config other.json`, `--out some/dir`,
 `--today 2027-01-15` builds as of another day.
@@ -49,7 +54,8 @@ file, not hidden in it.
 | flags.regulationDates | The clock shows only its first line |
 | flags.oneDayReply | The AWS door drops the one-business-day promise |
 | flags.videoReady | No film: no poster, no button, no film file in dist/ |
-| flags.downloads | No PDF download buttons |
+| flags.profilePdf | No Download PDF buttons and no PDF files in dist/ |
+| flags.downloads | No buttons for the one-page brief and the deck, which are separate files |
 | flags.marketplace | No Marketplace line on the AWS door |
 | flags.isoMark | ISO/IEC 27001 shows as text only |
 | flags.aiPolicyUrl (empty) | No link to the AI principles |
@@ -71,7 +77,8 @@ file, not hidden in it.
 Needs Node 22 or newer and a local Chrome. It serves dist/ locally, opens it in headless Chrome
 and prints one PASS or FAIL line per check: the four views from disk and from a server, personal
 links, a company name containing HTML, the switches, 360 px width, keyboard use, reduced motion,
-fonts, analytics events, no cookies, no JavaScript, logos, team, and the film player.
+fonts, analytics events, no cookies, no JavaScript, logos, team, the PDF buttons, the print layout,
+the PDF files and the film player.
 
 The checks describe the page as config.json has it today. The wording check compares the content
 files with the copy documents, which are not in this repository, and is skipped without them.

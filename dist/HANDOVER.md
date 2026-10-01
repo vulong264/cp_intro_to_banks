@@ -1,6 +1,6 @@
 # /banks: handover for the web team
 
-Build of 2026-10-01: banks.html is 139.7 KB, sha256 e3c930030a50.
+Build of 2026-10-01: banks.html is 141.1 KB, sha256 2dbb373f050b.
 
 **Not ready to go live.** config.json has no links.email, so the footer and the privacy note have no contact address. config.json has no links.awsContactEmail, so the AWS door has no contact address. LV will send a new build.
 
@@ -12,6 +12,10 @@ Build of 2026-10-01: banks.html is 139.7 KB, sha256 e3c930030a50.
 | og-banks.png | public/banks/og-banks.png |
 | banks-film.html | public/banks/banks-film.html |
 | banks-film-poster.webp | public/banks/banks-film-poster.webp |
+| coderpush-banks-profile-en.pdf | public/banks/coderpush-banks-profile-en.pdf |
+| coderpush-banks-profile-aws-en.pdf | public/banks/coderpush-banks-profile-aws-en.pdf |
+| coderpush-banks-profile-vi.pdf | public/banks/coderpush-banks-profile-vi.pdf |
+| coderpush-banks-profile-aws-vi.pdf | public/banks/coderpush-banks-profile-aws-vi.pdf |
 
 banks.html is the whole page: both doors, both languages, and all CSS and JavaScript inline. It has its own header and footer and no main-site navigation. There is no build step, no environment variable and no server code. Each new build from LV replaces index.html; please do not edit the file by hand.
 
@@ -20,6 +24,8 @@ banks-film.html is the overview film: one self-contained file of 1.9 MB, about 1
 The film and its poster are addressed relative to the page. That works at /banks/ with the trailing slash, which is how the site serves pages. If the page is ever served at /banks without the slash, it switches to /banks/ addresses by itself.
 
 The site must allow its own pages to be shown in a frame on the same site. Today it sends no X-Frame-Options header and no frame-ancestors rule, so nothing needs changing. If one is added later, keep the same origin allowed for /banks/banks-film.html.
+
+The 4 PDF files are the page itself, printed for A4 paper: one per language, for the bank door and for the AWS door. The Download PDF button in the header and at the end of the page fetches the one for the language and door in view. They are addressed relative to the page, like the film, and each new build replaces them.
 
 ## Routing
 
@@ -54,7 +60,7 @@ async redirects() {
 | section_view | A section reaches the middle of the screen, once per door | section, door |
 | deploy_select | An option in the diagram's deployment selector | option |
 | faq_open | An FAQ answer opens | question |
-| cta_click | A booking, share, film or download button, or an email link | cta, and for or door |
+| cta_click | A booking, share, film, PDF or download button, or an email link | cta, and for or door |
 
 Without the script tag the page sends nothing, and it never sets cookies, so it also works opened from disk.
 
@@ -70,3 +76,4 @@ Without the script tag the page sends nothing, and it never sets cookies, so it 
 - On a phone, /banks and /banks/ open the bank door, and /aws opens the AWS door.
 - Click a button on the live page and check that the click shows up in Vercel Analytics.
 - Press play on the poster on the live page: the film opens in the page and plays.
+- Press Download PDF on the live page, once in English and once in Vietnamese: each gives a PDF in that language.

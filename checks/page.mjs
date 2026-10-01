@@ -264,12 +264,14 @@ const nojs = await p.eval(`(() => ({
   lang: document.documentElement.lang,
   enShown: [...document.querySelectorAll('.en')].some(e => e.getClientRects().length), viShown: [...document.querySelectorAll('.vi')].some(e => e.getClientRects().length),
   bank: [...document.querySelectorAll('.d-bank')].filter(e => !e.closest('dialog:not([open])')).every(e => e.getClientRects().length), aws: [...document.querySelectorAll('.d-aws')].some(e => e.getClientRects().length),
+  pdf: [...document.querySelectorAll('a[data-pdf]')].map(a => a.getAttribute('href') + (a.getClientRects().length ? '' : ' hidden')).join(),
   film: [...document.querySelectorAll('.vp, [data-video]')].filter(e => e.getClientRects().length).length, heroCols: getComputedStyle(document.querySelector('.hr')).gridTemplateColumns.split(' ').length,
   faded: [...document.querySelectorAll('.rv')].filter(e => getComputedStyle(e).opacity !== '1').length,
   switches: [...document.querySelectorAll('.sw')].some(e => e.getClientRects().length),
 }))()`);
 ok('no JavaScript: English, bank door, all content visible', !/class="[^"]*\bjs\b/.test(html.slice(0, 300)) && nojs.lang === 'en' && nojs.enShown && !nojs.viShown && nojs.bank && !nojs.aws && nojs.faded === 0 && !nojs.switches, JSON.stringify(nojs));
 ok('no JavaScript: FAQ answers still expand', det.nodeId > 0);
+ok('no JavaScript: the PDF buttons give the English bank PDF', nojs.pdf === 'coderpush-banks-profile-en.pdf,coderpush-banks-profile-en.pdf', nojs.pdf);
 ok('no JavaScript: the film poster and button are left out, and the hero stays one column', nojs.film === 0 && nojs.heroCols === 1, JSON.stringify({ film: nojs.film, heroCols: nojs.heroCols }));
 
 // 12b. Words kept together never sit directly in a flex or grid box (which would drop the spaces around them).
@@ -320,6 +322,66 @@ const tm = await p.eval(`(async () => {
     long: /Long Vu|V\u0169 Long/.test(document.documentElement.innerHTML), initials: document.querySelectorAll('#team .av').length };
 })()`);
 ok('team shows Harley, Ben and Andy with photos, and Long is nowhere in the file', tm.names.length === 3 && tm.photos.every((w) => w === 192) && !tm.long && tm.initials === 0, JSON.stringify(tm));
+
+// 12e. The PDF download: one button in the header and one at the end, each pointing at the PDF of the view in sight.
+const wantPdf = { 'en-bank': 'coderpush-banks-profile-en.pdf', 'vi-bank': 'coderpush-banks-profile-vi.pdf', 'en-aws': 'coderpush-banks-profile-aws-en.pdf', 'vi-aws': 'coderpush-banks-profile-aws-vi.pdf' };
+const wantLabel = { en: 'Download PDF', vi: 'Tải PDF' };
+for (const [lang, door] of views) {
+  await fresh();
+  await p.viewport(1280, 900);
+  await p.goto(HTTP + q(lang, door));
+  const pd = await p.eval(`(async () => {
+    const links = [...document.querySelectorAll('a[data-pdf]')];
+    const first = links[0];
+    const res = await fetch(first.href);
+    const head = new TextDecoder('latin1').decode((await res.arrayBuffer()).slice(0, 5));
+    return { count: links.length, hrefs: links.map(a => a.getAttribute('href')), download: links.every(a => a.hasAttribute('download')), shown: links.every(a => a.getClientRects().length),
+      labels: links.map(a => a.innerText.trim()), cta: links.map(a => a.getAttribute('data-cta')).join(), status: res.status, type: res.headers.get('content-type'), head };
+  })()`);
+  const key = `${lang}-${door}`;
+  ok(`${key}: both PDF buttons point at this view's PDF, and the file is there`, pd.count === 2 && pd.hrefs.every((h) => h === wantPdf[key]) && pd.download && pd.shown && pd.labels.every((t) => t === wantLabel[lang]) && pd.cta === 'header-pdf,faq-pdf' && pd.status === 200 && pd.head === '%PDF-', JSON.stringify(pd));
+}
+await fresh();
+await p.viewport(1280, 900);
+await p.goto(HTTP + '?lang=en');
+await p.eval(`window.__marker = 7; document.querySelector('[data-lang-btn=vi]').click()`);
+await sleep(150);
+const pdSwitch = await p.eval(`({ href: document.querySelector('a[data-pdf]').getAttribute('href'), marker: window.__marker })`);
+ok('the PDF link follows the language switch without a reload', pdSwitch.href === wantPdf['vi-bank'] && pdSwitch.marker === 7, JSON.stringify(pdSwitch));
+await fresh();
+await p.viewport(360, 740, true);
+await p.goto(HTTP + '?lang=en');
+const pdNarrow = await p.eval(`(() => { const a = document.querySelector('.hb'), r = a.getBoundingClientRect(), s = a.querySelector('span').getBoundingClientRect(); return { w: Math.round(r.width), h: Math.round(r.height), label: Math.round(s.width), name: a.innerText.trim(), sw: document.documentElement.scrollWidth, sameRow: Math.abs(r.top - document.querySelector('.sw').getBoundingClientRect().top) < 2 }; })()`);
+ok('360 px: the header PDF button shows its icon only, keeps its name, and stays on the header row', pdNarrow.w >= 40 && pdNarrow.h >= 40 && pdNarrow.label <= 1 && pdNarrow.name === 'Download PDF' && pdNarrow.sw <= 360 && pdNarrow.sameRow, JSON.stringify(pdNarrow));
+
+// 12f. Print: light paper, every part shown, nothing that needs a click, and opening answers for print is not counted.
+await fresh();
+await p.S('Page.addScriptToEvaluateOnNewDocument', { source: "window.__ev = []; window.va = function () { window.__ev.push(Array.from(arguments)); };" });
+await p.viewport(1280, 900);
+await p.goto(HTTP + '?lang=en');
+await p.eval(`window.dispatchEvent(new Event('beforeprint')), 1`);
+await p.S('Emulation.setEmulatedMedia', { media: 'print' });
+await sleep(400);
+const pr = await p.eval(`(() => {
+  const shown = (sel) => [...document.querySelectorAll(sel)].filter(e => e.getClientRects().length).length;
+  const rgb = (e, prop) => getComputedStyle(e)[prop];
+  return {
+    bg: rgb(document.body, 'backgroundColor'), text: rgb(document.body, 'color'),
+    hidden: shown('.sw, .hb, .vp, [data-video], [data-pdf], #privacy'),
+    closed: [...document.querySelectorAll('details')].filter(d => !d.open).length,
+    faded: [...document.querySelectorAll('.rv')].filter(e => getComputedStyle(e).opacity !== '1').length,
+    built: document.querySelector('.dg').classList.contains('built'),
+    book: shown('a[data-cta=hero-book]'),
+    faqEvents: (window.__ev || []).filter(e => e[1].name === 'faq_open').length,
+    lightPanel: rgb(document.querySelector('.lwp'), 'backgroundColor'),
+  };
+})()`);
+await p.S('Emulation.setEmulatedMedia', { media: '' });
+ok('print: white paper and dark text', pr.bg === 'rgb(255, 255, 255)' && pr.text === 'rgb(10, 10, 10)' && pr.lightPanel === 'rgb(255, 255, 255)', JSON.stringify({ bg: pr.bg, text: pr.text, panel: pr.lightPanel }));
+ok('print: switches, film and download buttons are left out, the booking button stays', pr.hidden === 0 && pr.book === 1, JSON.stringify({ hidden: pr.hidden, book: pr.book }));
+ok('print: every answer is open and every part is visible', pr.closed === 0 && pr.faded === 0 && pr.built, JSON.stringify({ closed: pr.closed, faded: pr.faded, built: pr.built }));
+await sleep(300);
+ok('print: answers opened for printing are not counted as faq_open', (await p.eval(`(window.__ev || []).filter(e => e[1].name === 'faq_open').length`)) === 0);
 
 // 13. Live numbers.
 await fresh();

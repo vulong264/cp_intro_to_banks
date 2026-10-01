@@ -27,6 +27,8 @@ const fileUrl = pathToFileURL(path.join(DIST, 'banks.html')).href;
 const results = [];
 results.push(['copy', await run('copy.mjs')]);
 results.push(['page', await run('page.mjs', [`http://127.0.0.1:${GZIP}/banks/`, fileUrl, `http://127.0.0.1:${PLAIN}/banks.html`])]);
+if (fs.existsSync(path.join(DIST, 'coderpush-banks-profile-en.pdf'))) results.push(['pdf', await run('pdf.mjs')]);
+else console.log('\nPDF checks skipped: dist/ has no PDFs (flags.profilePdf is off)');
 if (fs.existsSync(path.join(DIST, 'banks-film.html'))) {
   results.push(['film', await run('film.mjs', [`http://127.0.0.1:${GZIP}`, fileUrl])]);
   results.push(['film, sound refused', await run('film.mjs', [`http://127.0.0.1:${GZIP}`, fileUrl, 'user-gesture-required'])]);

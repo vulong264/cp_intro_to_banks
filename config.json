@@ -5,6 +5,7 @@
     "regulationDates": false,
     "oneDayReply": false,
     "videoReady": true,
+    "profilePdf": true,
     "downloads": false,
     "marketplace": false,
     "isoMark": false,
