@@ -52,12 +52,17 @@ let pl = await p.eval(`(() => ({
   greet: document.querySelector('.pf').getClientRects().length ? document.querySelector('.pf').innerText.trim() : null,
   order: [...document.querySelectorAll('.ucs [data-uc]')].map(c => c.getAttribute('data-uc')),
   tags: [...document.querySelectorAll('.ucs .tag')].filter(t => t.getClientRects().length).map(t => t.closest('[data-uc]').getAttribute('data-uc') + ':' + t.innerText.trim()),
-  mail: document.querySelector('a[data-cta=hero-book].vi').getAttribute('href'),
+  book: (() => { const a = document.querySelector('a[data-cta=hero-book].vi'); return { href: a.getAttribute('href'), target: a.getAttribute('target'), rel: a.getAttribute('rel') }; })(),
+  share: document.querySelector('a[data-cta=hero-share].vi').getAttribute('href'),
 }))()`);
 ok('personal link: greeting above the headline', pl.greet && pl.greet.startsWith('Dành riêng cho Example Bank'), pl.greet);
 ok('personal link: picked use cases first', pl.order.slice(0, 2).join() === 'contact-centre,governed-analytics' && pl.order.length === 6, pl.order.join());
 ok('personal link: "Gợi ý riêng" tag on the picks only', pl.tags.join() === 'contact-centre:Gợi ý riêng,governed-analytics:Gợi ý riêng', pl.tags.join());
-ok('personal link: booking email subject names the company', decodeURIComponent(pl.mail).includes('Example Bank'), decodeURIComponent(pl.mail));
+// The booking buttons open links.booking when config.json has one, and otherwise an email. Emails name the company.
+const bookOk = pl.book.href.startsWith('mailto:') ? decodeURIComponent(pl.book.href).includes('Example Bank')
+  : /^https:\/\//.test(pl.book.href) && pl.book.target === '_blank' && pl.book.rel === 'noopener';
+ok('personal link: the booking button opens the booking page in a new tab, or an email naming the company', bookOk, JSON.stringify(pl.book));
+ok('personal link: email subjects name the company', pl.share.startsWith('mailto:') && decodeURIComponent(pl.share).includes('Example Bank'), decodeURIComponent(pl.share));
 ok('personal link: no console errors', p.logs.length === 0, p.logs.join(' | '));
 
 // 4. A for value containing HTML shows as plain text; unknown keys ignored; 60-character cap.
@@ -208,7 +213,7 @@ ok('English view: all text in Geist, no other font', Object.keys(en.fams).every(
 
 // 10. Analytics events and properties, with a stand-in for Vercel's va().
 await fresh();
-await p.S('Page.addScriptToEvaluateOnNewDocument', { source: "window.__ev = []; window.va = function () { window.__ev.push(Array.from(arguments)); }; addEventListener('click', function (e) { var a = e.target.closest && e.target.closest('a[href^=mailto]'); if (a) e.preventDefault(); }, true);" });
+await p.S('Page.addScriptToEvaluateOnNewDocument', { source: "window.__ev = []; window.va = function () { window.__ev.push(Array.from(arguments)); }; addEventListener('click', function (e) { var a = e.target.closest && e.target.closest('a[data-cta]'); if (a) e.preventDefault(); }, true);" });
 await p.viewport(1280, 900);
 await p.goto(HTTP + '?for=Test+Bank&lang=en');
 await sleep(5400);

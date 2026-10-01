@@ -1,8 +1,8 @@
 # /banks: handover for the web team
 
-Build of 2026-10-01: banks.html is 139.6 KB, sha256 f38cc770039a.
+Build of 2026-10-01: banks.html is 139.7 KB, sha256 e3c930030a50.
 
-**Not ready to go live.** config.json has no links.email or links.booking, so the booking buttons have no destination. config.json has no links.awsContactEmail, so the AWS door has no contact address. LV will send a new build.
+**Not ready to go live.** config.json has no links.email, so the footer and the privacy note have no contact address. config.json has no links.awsContactEmail, so the AWS door has no contact address. LV will send a new build.
 
 ## Files
 
