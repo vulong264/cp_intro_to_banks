@@ -1,0 +1,213 @@
+{
+  "clients": {
+    "tps": { "name": "TPS", "fallback": "một công ty chứng khoán Việt Nam" },
+    "mbbank": { "name": "MB Bank", "fallback": "một ngân hàng hàng đầu Việt Nam" },
+    "tpbank": { "name": "TPBank", "fallback": "một ngân hàng thương mại Việt Nam" },
+    "ensign": { "name": "Ensign", "fallback": "một công ty an ninh mạng Singapore" },
+    "buymed": { "name": "BuyMed", "fallback": "một nền tảng phân phối dược phẩm" },
+    "sleek": { "name": "Sleek" },
+    "nanoco": { "name": "Nanoco" }
+  },
+  "ui": {
+    "lang": { "en": "EN", "vi": "VI" },
+    "preparedFor": "Dành riêng cho {org}",
+    "picked": "Gợi ý riêng",
+    "status": { "live": "Đang vận hành", "delivered": "Đã bàn giao", "poc": "PoC hoàn thành" },
+    "days": "{n} ngày vận hành",
+    "reference": "Khách hàng sẵn sàng xác nhận",
+    "today": "Hôm nay",
+    "inDays": "còn {n} ngày",
+    "video": { "play": "Phát", "close": "Đóng", "transcript": "Lời thoại", "subtitles": "Phụ đề" },
+    "downloadPdf": "Tải PDF",
+    "privacyLink": "Trang này sử dụng dữ liệu thế nào",
+    "legalName": "Công ty TNHH Công nghệ CoderPush",
+    "privacyNote": "Trang này đếm lượt xem và lượt nhấp bằng công cụ phân tích tôn trọng quyền riêng tư, không dùng cookie. Nếu trang được mở từ đường dẫn riêng do chúng tôi gửi, lượt xem được ghi nhận theo tên doanh nghiệp để chúng tôi liên hệ lại. Thắc mắc hoặc từ chối: {email}."
+  },
+  "switch": { "bank": "Tôi làm ở ngân hàng", "aws": "Tôi làm ở AWS" },
+  "hero": {
+    "eyebrow": ["Đối tác dịch vụ AWS cấp Advanced", "AWS AI Competency", "Chứng nhận ISO/IEC 27001"],
+    "bank": {
+      "headline": "AI vận hành thật cho ngân hàng Việt Nam.",
+      "subline": "Chúng tôi đưa AI vượt qua giai đoạn thử nghiệm: bằng tiếng Việt, tuân thủ Luật Trí tuệ nhân tạo, trên AWS hoặc triển khai hoàn toàn on-prem.",
+      "book": "Đặt lịch sprint 2 tuần",
+      "video": "Xem video 90 giây"
+    },
+    "aws": {
+      "headline": "Hãy gọi chúng tôi khi AI của ngân hàng mắc kẹt ở giai đoạn thử nghiệm.",
+      "subline": "CoderPush đưa các dự án AI thử nghiệm của ngân hàng thành workload vận hành thật trên AWS, bằng tiếng Việt, với dữ liệu lưu tại Việt Nam hoặc on-prem.",
+      "share": "Chia sẻ cơ hội",
+      "brief": "Tải bản giới thiệu một trang",
+      "whyNow": "Quick desktop chính thức ra mắt (GA) ngày 9/9 và AWS Local Zone Hà Nội hoạt động từ tháng 6. Chúng tôi giúp ngân hàng dùng cả hai một cách an toàn."
+    },
+    "proofStrip": [
+      { "live": true, "text": "Vận hành tại {c:tps} từ tháng 4/2026" },
+      { "live": false, "text": "Presight PoC on-prem tại {c:mbbank}" },
+      { "live": false, "text": "Đã chuyển giao tại {c:tpbank}" }
+    ]
+  },
+  "gap": {
+    "headline": "AI đã có mặt khắp ngành tài chính Việt Nam. Nhưng AI vận hành thật thì chưa.",
+    "numbers": [
+      { "number": "41%", "label": "doanh nghiệp dịch vụ tài chính tại Việt Nam đang tích cực triển khai AI" },
+      { "number": "61%", "label": "doanh nghiệp Việt Nam đang dùng AI vẫn dừng ở giai đoạn thử nghiệm" },
+      { "number": "8%", "label": "doanh nghiệp Việt Nam đã đưa AI agent vào quy trình cốt lõi" }
+    ],
+    "line": "Cái khó giờ không nằm ở mô hình AI. Cái khó nằm ở dữ liệu tiếng Việt, ở quản trị, và ở con đường đưa hệ thống vào vận hành.",
+    "source": "Nguồn: Unlocking Vietnam's AI Potential 2026, AWS và Strand Partners."
+  },
+  "clock": {
+    "headline": "Khung pháp lý cho AI đã có hiệu lực. Tuân thủ phải có từ ngày đầu.",
+    "rows": [
+      { "date": "2026-03-01", "when": "1/3/2026", "text": "Luật Trí tuệ nhân tạo có hiệu lực." },
+      { "date": "2026-08-19", "when": "19/8/2026", "text": "Bắt đầu áp dụng mức phạt theo Nghị định 330: tới 3 tỷ đồng, và tới 5% doanh thu năm liền trước với vi phạm nghiêm trọng về chuyển dữ liệu cá nhân xuyên biên giới." },
+      { "date": "2027-03-01", "when": "1/3/2027", "text": "Hạn tuân thủ với hệ thống AI rủi ro cao đưa vào vận hành từ 15/8/2026." },
+      { "date": "2027-09-01", "when": "1/9/2027", "text": "Hạn tuân thủ với hệ thống AI trong lĩnh vực tài chính đã vận hành trước 15/8/2026." },
+      { "date": "", "when": "Đang dự thảo", "text": "Thông tư của NHNN về ứng dụng AI trong ngân hàng: chiến lược AI do HĐQT phê duyệt, cơ chế con người can thiệp, dừng khẩn cấp." }
+    ],
+    "appliesNow": "Luật Trí tuệ nhân tạo đã có hiệu lực.",
+    "line": "Mọi hệ thống chúng tôi bàn giao đều kèm hồ sơ tuân thủ: mức rủi ro, nhật ký hệ thống, cơ chế con người can thiệp và nút dừng khẩn cấp.",
+    "smallPrint": "Tóm tắt để tham khảo, không phải tư vấn pháp lý."
+  },
+  "pattern": {
+    "headline": "Mua giao diện. Xây bộ não. Giữ dữ liệu.",
+    "body": "Nhân viên ngân hàng làm việc trên Amazon Quick hoặc các ứng dụng sẵn có. Chúng tôi xây lớp trí tuệ ở giữa: giọng nói, tài liệu tiếng Việt và AI agent. Dữ liệu vẫn nằm ở nơi ngân hàng đang lưu trữ.",
+    "question": "Dữ liệu của ngân hàng phải nằm ở đâu?",
+    "options": [
+      { "key": "region", "label": "AWS Region", "caption": "Khởi động nhanh nhất. Dữ liệu cá nhân được khử nhận dạng trước khi bất kỳ dữ liệu nào rời khỏi hệ thống của ngân hàng." },
+      { "key": "localzone", "label": "AWS Local Zone Hà Nội", "caption": "Hạ tầng tính toán và lưu trữ đặt tại Việt Nam, quản lý qua cùng bộ API của AWS." },
+      { "key": "onprem", "label": "On-prem", "caption": "Toàn bộ hệ thống nằm trong trung tâm dữ liệu của ngân hàng, như PoC Presight của chúng tôi tại {c:mbbank}." }
+    ],
+    "diagram": {
+      "title": "Người dùng nghiệp vụ làm việc trên Quick; bộ não và dữ liệu ở lại với ngân hàng",
+      "subtitle": "Ví dụ: mỗi cuộc gọi tổng đài trở thành thông tin phân tích và một hành động tiếp theo",
+      "top": "Trải nghiệm: chúng tôi cấu hình",
+      "quick": "Amazon Quick · Dashboard và hỏi đáp cho cấp quản lý · chỉ nhận số liệu tổng hợp đã khử nhận dạng",
+      "apps": "CRM và ứng dụng ngân hàng · Gợi ý hành động tiếp theo cho RM và điện thoại viên tổng đài",
+      "boundary": "Phía dưới: dữ liệu cá nhân ở lại Việt Nam",
+      "middle": "Trí tuệ: chúng tôi xây dựng",
+      "stt": "Chuyển giọng nói thành văn bản · Tiếng Việt, đủ giọng vùng miền · đo độ chính xác trên chính cuộc gọi của ngân hàng",
+      "tagging": "AI agent gắn nhãn · Ý định, khiếu nại, tuân thủ, tín hiệu bán hàng, gắn với từng khách hàng",
+      "bottom": "Dữ liệu: của ngân hàng, tại Việt Nam",
+      "recordings": "Ghi âm cuộc gọi · từ hệ thống tổng đài",
+      "store": "Kho dữ liệu phân tích · đã che thông tin cá nhân · Local Zone hoặc on-prem",
+      "platform": "Nền tảng dữ liệu hiện có · lakehouse và core banking giữ nguyên",
+      "rail": "Quản trị · trên mọi lớp",
+      "railItems": "Định danh và phân quyền · Nhật ký kiểm toán · Con người can thiệp · Nút dừng khẩn cấp · Đánh giá trước mỗi lần phát hành · Hồ sơ tuân thủ Luật AI",
+      "arrows": "âm thanh · nhãn · ngữ cảnh · số liệu tổng hợp",
+      "stateRegion": "Chuyển giọng nói thành văn bản vẫn ở Việt Nam; AI agent gắn nhãn chạy tại AWS Region trên văn bản cuộc gọi đã khử nhận dạng",
+      "stateLocalzone": "Lớp trí tuệ chạy tại AWS Local Zone Hà Nội",
+      "stateOnprem": "Bên trong trung tâm dữ liệu của ngân hàng · Quick là tùy chọn, chỉ số liệu tổng hợp · Presight hoặc ứng dụng của ngân hàng"
+    }
+  },
+  "useCases": {
+    "headline": "Sáu bài toán để bắt đầu. Mỗi bài toán đi kèm một KPI và một minh chứng.",
+    "items": [
+      { "key": "contact-centre", "title": "Phân tích cuộc gọi tổng đài", "does": "Mọi cuộc gọi được chuyển thành văn bản và gắn nhãn: ý định, khiếu nại, rủi ro tuân thủ, tín hiệu bán hàng", "kpi": "Tỷ lệ cuộc gọi được rà soát; thời gian xử lý khiếu nại", "proof": "Nghiên cứu ngôn ngữ tiếng Việt của chúng tôi; demo trực tiếp" },
+      { "key": "rm-copilot", "title": "Trợ lý cho RM và gợi ý sản phẩm tiếp theo", "does": "Bản tóm tắt trước mỗi buổi gặp khách hàng và sản phẩm phù hợp nhất để giới thiệu tiếp, ngay trong CRM", "kpi": "Số sản phẩm trên mỗi khách hàng", "proof": "Nền tảng dữ liệu khách hàng (CDP) của {c:tps}: dưới 5 phút từ sự kiện đến CRM" },
+      { "key": "credit-memo", "title": "Tờ trình tín dụng từ báo cáo tài chính", "does": "Đọc, đối chiếu báo cáo tài chính tiếng Việt và soạn bản nháp đầu tiên của tờ trình tín dụng", "kpi": "Thời gian ra quyết định tín dụng", "proof": "Công cụ dữ liệu tài chính tiếng Việt của chúng tôi (Promvis)" },
+      { "key": "governed-analytics", "title": "Phân tích dữ liệu có quản trị cho người dùng nghiệp vụ", "does": "Hỏi bằng ngôn ngữ tự nhiên, câu trả lời chỉ dựa trên bộ chỉ số đã được phê duyệt", "kpi": "Số câu hỏi được trả lời mà không cần gửi yêu cầu cho bộ phận phân tích", "proof": "Presight PoC on-prem tại {c:mbbank}" },
+      { "key": "investment-assistant", "title": "Trợ lý đầu tư cho khối chứng khoán và quản lý tài sản", "does": "Chuyên viên phân tích AI ngay trong ứng dụng giao dịch, chủ động đưa nhận định về từng mã trước khi người dùng hỏi", "kpi": "Tỷ lệ người dùng quay lại; tỷ lệ câu hỏi được trả lời trọn vẹn", "proof": "T'FOX tại {c:tps}, vận hành từ tháng 4/2026; triển khai tiếp theo chỉ mất 3-4 tuần" },
+      { "key": "ekyc-deepfake", "title": "Chống deepfake trong eKYC", "does": "Phát hiện deepfake ngay trên điện thoại, trước khi lọt vào quy trình mở tài khoản", "kpi": "Số vụ gian lận bị chặn ở bước mở tài khoản", "proof": "Mô hình chạy trên thiết bị cho {c:ensign}, dưới 500 ms mỗi lần kiểm tra" }
+    ]
+  },
+  "proof": {
+    "headline": "Hệ thống đang vận hành thật, có số liệu đo lường.",
+    "cards": [
+      { "status": "live", "since": "2026-04-10", "reference": true, "title": "T'FOX, trợ lý đầu tư AI", "client": "{C:tps}", "statusText": "Vận hành từ 10/4/2026", "body": "72% câu hỏi nằm trong phạm vi phục vụ; 48% người dùng quay lại và tạo ra 81% lưu lượng; mọi câu hỏi đều được truy vết theo 31 nhóm ý định." },
+      { "status": "poc", "since": "", "reference": true, "title": "Presight, phân tích dữ liệu AI có quản trị, triển khai on-prem", "client": "{C:mbbank}", "statusText": "PoC thành công; đang phát triển phiên bản 2", "body": "Trả lời bằng ngôn ngữ tự nhiên trên bộ chỉ số có quản trị, ngay trong trung tâm dữ liệu của ngân hàng, không dữ liệu nào rời khỏi tòa nhà. Do Trưởng bộ phận Ứng dụng AI của chúng tôi xây dựng, CoderPush là đơn vị triển khai độc quyền tại Việt Nam." },
+      { "status": "delivered", "since": "", "reference": false, "title": "Phát triển phần mềm với AI agent, đã chuyển giao", "client": "{C:tpbank}", "statusText": "", "body": "Đội ngũ của ngân hàng giờ tự vận hành phương pháp này mà không cần chúng tôi." },
+      { "status": "live", "since": "", "reference": false, "title": "Nền tảng dữ liệu khách hàng (CDP) trên AWS", "client": "{C:tps}", "statusText": "", "body": "Dưới 5 phút từ sự kiện đến CRM; mỗi khách hàng đang hoạt động được hợp nhất thành một hồ sơ duy nhất." },
+      { "status": "delivered", "since": "", "reference": false, "title": "Phát hiện deepfake ngay trên điện thoại", "client": "{C:ensign|Ensign, Singapore}", "statusText": "", "body": "MVP trong 8 tuần; dưới 500 ms mỗi lần kiểm tra trên điện thoại tầm trung." },
+      { "status": "live", "since": "", "reference": false, "title": "Trợ lý đặt hàng AI", "client": "{C:buymed}", "statusText": "", "body": "Hơn 35.000 nhà thuốc và phòng khám; xử lý đơn hàng nhanh hơn 40%." }
+    ]
+  },
+  "safety": {
+    "headline": "Có bằng chứng trước khi vận hành. Có đo lường sau khi vận hành.",
+    "steps": [
+      { "title": "Đặc tả đi trước.", "body": "Bản đặc tả là thỏa thuận gốc, viết cho cả con người lẫn mô hình AI." },
+      { "title": "Đánh giá trước khi ra mắt.", "body": "Bộ dữ liệu kiểm thử được xây từ dữ liệu thật của ngân hàng; chưa đạt thì chưa phát hành." },
+      { "title": "Con người quyết định go/no-go.", "body": "Kỹ sư của chúng tôi chịu trách nhiệm về kiến trúc, rà soát và phát hành; không thay đổi nào được đưa vào hệ thống mà thiếu người duyệt." },
+      { "title": "Bằng chứng là mặc định.", "body": "Mức rủi ro, nhật ký hệ thống, cơ chế con người can thiệp và nút dừng khẩn cấp, sẵn sàng cho bộ phận quản trị rủi ro và cơ quan quản lý." }
+    ],
+    "measurement": "Mỗi tháng, ngân hàng nhận một báo cáo như báo cáo chúng tôi gửi {c:tps}: mọi câu hỏi đều được truy vết và phân loại, điều gì hiệu quả, điều gì chưa, và việc chúng tôi sẽ cải thiện tiếp theo.",
+    "principles": "Đọc nguyên tắc AI của chúng tôi"
+  },
+  "team": {
+    "headline": "Những người trực tiếp đồng hành cùng ngân hàng.",
+    "people": [
+      { "key": "long", "name": "Vũ Long", "title": "Đồng sáng lập, Managing Director", "line": "Trực tiếp dẫn dắt các chương trình với ngân hàng và công ty chứng khoán, từ xác định phạm vi đến khi vận hành. Đồng sáng lập Logivan." },
+      { "key": "harley", "name": "Harley Trung", "title": "Đồng sáng lập, Giám đốc AI (Chief AI Officer)", "line": "Định ra cách chúng tôi xây dựng, đánh giá và quản trị mọi hệ thống AI được bàn giao. Khoa học Máy tính, Đại học Yale; từng làm việc tại Microsoft; sáng lập nhiều startup tại Mỹ và Trung Quốc." },
+      { "key": "ben", "name": "Ben Phạm", "title": "Trưởng bộ phận Ứng dụng AI", "line": "Biến dữ liệu ngân hàng thành những câu trả lời mà người dùng nghiệp vụ có thể tin cậy. Nhà sáng lập presight.io; nguyên Giám đốc Dữ liệu (CDO) Tập đoàn Siêu Việt; nguyên Nhà khoa học dữ liệu tại Microsoft." },
+      { "key": "andy", "name": "TS. Trần Vũ Anh (Andy)", "title": "Trưởng bộ phận Nghiên cứu AI", "line": "Dẫn dắt mảng AI cho ngôn ngữ và tài liệu tiếng Việt. Tiến sĩ, Đại học Kanazawa (Nhật Bản); xây dựng Doctranslate.io; nguyên CTO Logivan và Waves8; giảng viên Trường Quốc tế, Đại học Quốc gia Hà Nội." }
+    ],
+    "builders": "Trần Thiện, Tech Lead, T'FOX · Kiều Thiện, Quản lý Kỹ thuật các chương trình AI cho ngân hàng · Tạ Cang, AWS Practice Manager"
+  },
+  "offer": {
+    "headline": "Một bài toán. Một quý. Một KPI.",
+    "phases": [
+      { "title": "Tuần 1-2, sprint chọn bài toán.", "body": "Cùng đội ngũ ngân hàng và AWS: chọn bài toán và KPI, xây bộ dữ liệu kiểm thử từ dữ liệu của ngân hàng, xác nhận mức rủi ro." },
+      { "title": "Tuần 3-8, xây dựng trên hạ tầng của ngân hàng.", "body": "Tài khoản AWS của ngân hàng, AWS Local Zone Hà Nội hoặc trung tâm dữ liệu riêng; theo đúng quy định định danh và phân quyền của ngân hàng; mỗi lần phát hành đều phải qua bài đánh giá." },
+      { "title": "Tuần 9-12, vận hành thật với một nhóm người dùng xác định.", "body": "Kèm bộ hồ sơ tuân thủ và báo cáo đo lường hằng tháng." }
+    ],
+    "line": "Với dự án đủ điều kiện, chúng tôi làm hồ sơ đề nghị AWS hỗ trợ kinh phí. Ký kết dưới dạng hợp đồng dịch vụ tư vấn.",
+    "waysIn": "Phân tích cuộc gọi tổng đài · Phân tích dữ liệu có quản trị với Presight · Rà soát mức sẵn sàng theo Luật AI · Phát triển phần mềm AI-native cho khối CNTT",
+    "button": "Đặt lịch sprint 2 tuần"
+  },
+  "faq": {
+    "items": [
+      { "key": "data-location", "q": "Dữ liệu của chúng tôi nằm ở đâu?", "a": "Ở nơi ngân hàng quyết định: một AWS Region, AWS Local Zone Hà Nội hoặc trung tâm dữ liệu của ngân hàng. Dữ liệu cá nhân được khử nhận dạng trước khi bất kỳ dữ liệu nào rời khỏi hệ thống của ngân hàng." },
+      { "key": "ownership", "q": "Ai sở hữu mã nguồn và tài khoản?", "a": "Ngân hàng. Chúng tôi xây dựng trong tài khoản AWS của ngân hàng, theo chính sách IAM của ngân hàng, và ngân hàng có thể thu hồi quyền truy cập của chúng tôi bất cứ lúc nào." },
+      { "key": "contract", "q": "Ký kết hợp đồng theo hình thức nào?", "a": "Hợp đồng dịch vụ tư vấn: một dự án có phạm vi xác định, hoặc phí gắn với kết quả đã thống nhất." },
+      { "key": "aws-funding", "q": "AWS có hỗ trợ kinh phí không?", "a": "Với dự án đủ điều kiện, chúng tôi thay mặt ngân hàng đề nghị AWS hỗ trợ kinh phí và lo toàn bộ thủ tục." },
+      { "key": "time-to-live", "q": "Bao lâu thì vận hành được?", "a": "Một bài toán mới vận hành với một nhóm người dùng xác định trong vòng một quý. Nếu sản phẩm đã có sẵn thì nhanh hơn: trợ lý đầu tư như T'FOX vận hành chỉ sau 3-4 tuần." },
+      { "key": "security-review", "q": "CoderPush đáp ứng thẩm định bảo mật của ngân hàng thế nào?", "a": "CoderPush đạt chứng nhận ISO/IEC 27001. Chúng tôi làm việc bên trong tài khoản hoặc trung tâm dữ liệu của ngân hàng, theo chính sách truy cập của ngân hàng, mọi thao tác đều được ghi nhật ký, và bộ tài liệu phục vụ thẩm định có kèm chứng chỉ cùng phạm vi chứng nhận." },
+      { "key": "aws-only", "q": "CoderPush chỉ làm trên AWS?", "a": "Không. AWS là nền tảng chính của chúng tôi, nhưng PoC Presight đã chạy hoàn toàn on-prem tại {c:mbbank}, và cùng mô hình này có thể triển khai ở bất cứ nơi nào dữ liệu của ngân hàng phải nằm." }
+    ],
+    "button": "Đặt lịch trao đổi 30 phút"
+  },
+  "aws": {
+    "when": {
+      "headline": "Khi nào nên gọi chúng tôi",
+      "items": [
+        "Dự án GenAI chạy tốt trong demo nhưng chưa đưa được vào vận hành.",
+        "Bài toán cần xử lý giọng nói hoặc tài liệu tiếng Việt.",
+        "Dữ liệu phải nằm tại Việt Nam hoặc on-prem.",
+        "Ngân hàng muốn dùng Quick nhưng lo ngại dữ liệu sẽ đi đâu.",
+        "Các mốc thời hạn của Luật AI hoặc NHNN buộc ngân hàng phải kiểm kê hệ thống AI.",
+        "Khối CNTT muốn chuyển sang phát triển phần mềm AI-native với Kiro, như {c:tpbank} đã làm."
+      ]
+    },
+    "not": {
+      "headline": "Chúng tôi không phải là",
+      "text": "Không phải đơn vị chuyên migration máy chủ hàng loạt, cũng không phải bên bán lại license rồi biến mất sau khi bán."
+    },
+    "gains": {
+      "headline": "Account được gì",
+      "text": "T'FOX là workload đầu tiên của {c:tps} trên AWS. Mỗi bài toán mới chúng tôi đưa lên AWS đều được chia sẻ trên ACE, và chúng tôi lo toàn bộ thủ tục xin hỗ trợ kinh phí.",
+      "marketplace": "Presight và Promvis trên AWS Marketplace, để ngân hàng mua qua chính tài khoản AWS của mình."
+    },
+    "engage": {
+      "headline": "Cách phối hợp",
+      "share": "Chia sẻ cơ hội trên ACE, hoặc [email cho chúng tôi](awsEmail) tên ngân hàng và bài toán.",
+      "reply": "Chúng tôi phản hồi trong vòng một ngày làm việc, kèm nhận định ban đầu và phương án hỗ trợ kinh phí.",
+      "contact": "Đầu mối: Tạ Cang, AWS Practice Manager.",
+      "downloads": "Tài liệu: [bản giới thiệu một trang](brief) · [bản trình bày PDF](deck)",
+      "questionsTitle": "Năm câu hỏi cho cuộc gọi đầu tiên",
+      "questions": [
+        "Bài toán AI nào đã có người bảo trợ và KPI nhưng chưa có đường đưa vào vận hành?",
+        "Dữ liệu phải nằm ở đâu: một AWS Region, chỉ tại Việt Nam, hay on-prem?",
+        "Bài toán có cần xử lý giọng nói hoặc tài liệu tiếng Việt không?",
+        "Ai đang phê duyệt rủi ro AI, và họ đã rà soát các mốc thời hạn của Luật AI chưa?",
+        "Ngân sách quý này đã có chưa, hay nên đề nghị AWS hỗ trợ kinh phí trước?"
+      ]
+    }
+  },
+  "video": {
+    "beats": [
+      { "start": 0, "end": 15, "text": "Hầu hết ngân hàng tại Việt Nam đã có dự án AI thử nghiệm. Nhưng rất ít ngân hàng có AI vận hành thật, phục vụ khách hàng mỗi ngày." },
+      { "start": 15, "end": 40, "text": "Mô hình AI không còn là phần khó. Phần khó là dữ liệu tiếng Việt. Là quản trị. Và từ tháng 3, là Luật Trí tuệ nhân tạo. Đó là chỗ các dự án thử nghiệm dừng lại." },
+      { "start": 40, "end": 65, "text": "Chúng tôi xây phần ở giữa. Nhân viên ngân hàng giữ nguyên công cụ đang dùng, chúng tôi xây lớp trí tuệ bằng tiếng Việt, và dữ liệu nằm đúng nơi cần nằm. Trợ lý đầu tư của chúng tôi vận hành tại {c:tps} từ tháng 4. Nền tảng phân tích của chúng tôi đã chạy hoàn toàn on-prem bên trong {c:mbbank}." },
+      { "start": 65, "end": 90, "text": "Vì vậy, đề xuất của chúng tôi là: một bài toán, một quý, một KPI, với hỗ trợ kinh phí từ AWS khi đủ điều kiện. Hãy đặt lịch sprint ngay bên dưới, và cùng đưa một bài toán vào vận hành thật." }
+    ]
+  }
+}

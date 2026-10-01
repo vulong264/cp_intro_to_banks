@@ -1,0 +1,216 @@
+{
+  "meta": {
+    "title": "Production AI for Vietnamese banks | CoderPush"
+  },
+  "clients": {
+    "tps": { "name": "TPS", "fallback": "a Vietnamese securities firm" },
+    "mbbank": { "name": "MB Bank", "fallback": "a top-tier Vietnamese bank" },
+    "tpbank": { "name": "TPBank", "fallback": "a Vietnamese commercial bank" },
+    "ensign": { "name": "Ensign", "fallback": "a Singapore cybersecurity firm" },
+    "buymed": { "name": "BuyMed", "fallback": "a pharmacy distribution platform" },
+    "sleek": { "name": "Sleek" },
+    "nanoco": { "name": "Nanoco" }
+  },
+  "ui": {
+    "lang": { "en": "EN", "vi": "VI" },
+    "preparedFor": "Prepared for {org}",
+    "picked": "Picked for you",
+    "status": { "live": "Live", "delivered": "Delivered", "poc": "PoC completed" },
+    "days": "{n} days in production",
+    "reference": "Reference available",
+    "today": "Today",
+    "inDays": "in {n} days",
+    "video": { "play": "Play", "close": "Close", "transcript": "Transcript", "subtitles": "Subtitles" },
+    "downloadPdf": "Download PDF",
+    "privacyLink": "How this page uses data",
+    "legalName": "CoderPush Technology Company Limited",
+    "privacyNote": "This page counts visits and clicks with privacy-friendly analytics and sets no cookies. If you opened it from a link we sent you, the visit is recorded against your company's name so we can follow up. Questions or opt-out: {email}."
+  },
+  "switch": { "bank": "I work at a bank", "aws": "I work at AWS" },
+  "hero": {
+    "eyebrow": ["AWS Advanced Tier Services Partner", "AWS AI Competency", "ISO/IEC 27001 certified"],
+    "bank": {
+      "headline": "Production AI for Vietnamese banks.",
+      "subline": "We take AI past the pilot: in Vietnamese, inside the AI Law, on AWS or fully on-prem.",
+      "book": "Book a use-case sprint",
+      "video": "Watch the 90-second overview"
+    },
+    "aws": {
+      "headline": "Bring us in when a bank's AI is stuck at pilot.",
+      "subline": "CoderPush turns bank AI pilots into production workloads on AWS, in Vietnamese, with the data kept in Vietnam or on-prem.",
+      "share": "Share an opportunity",
+      "brief": "Download the one-page brief",
+      "whyNow": "Quick desktop went GA on 9 Sep and the Hanoi Local Zone opened in June. We make both safe for banks."
+    },
+    "proofStrip": [
+      { "live": true, "text": "Live at {c:tps} since April 2026" },
+      { "live": false, "text": "Presight PoC on-prem at {c:mbbank}" },
+      { "live": false, "text": "Handed over at {c:tpbank}" }
+    ]
+  },
+  "gap": {
+    "headline": "AI is everywhere in Vietnamese finance. Production is not.",
+    "numbers": [
+      { "number": "41%", "label": "of Vietnamese financial services firms actively deploy AI" },
+      { "number": "61%", "label": "of Vietnamese businesses using AI are still in testing" },
+      { "number": "8%", "label": "of Vietnamese businesses run AI agents in core processes" }
+    ],
+    "line": "The hard part is no longer the model. It is Vietnamese data, governance and the path to go-live.",
+    "source": "Unlocking Vietnam's AI Potential 2026, AWS and Strand Partners."
+  },
+  "clock": {
+    "headline": "The rules have arrived. Build to them from day one.",
+    "rows": [
+      { "date": "2026-03-01", "when": "1 Mar 2026", "text": "Vietnam's AI Law takes effect." },
+      { "date": "2026-08-19", "when": "19 Aug 2026", "text": "Decree 330 fines apply: up to 3bn VND, and up to 5% of the previous year's revenue for serious cross-border data transfer breaches." },
+      { "date": "2027-03-01", "when": "1 Mar 2027", "text": "High-risk AI systems put live from 15 Aug 2026 must comply." },
+      { "date": "2027-09-01", "when": "1 Sep 2027", "text": "Finance-sector AI systems already live before 15 Aug 2026 must comply." },
+      { "date": "", "when": "In draft", "text": "SBV circular on AI in banking: board-approved AI strategy, human override, emergency stop." }
+    ],
+    "appliesNow": "The AI Law applies now.",
+    "line": "Every system we ship carries its evidence: risk class, logs, human override and a kill switch.",
+    "smallPrint": "A summary for orientation, not legal advice."
+  },
+  "pattern": {
+    "headline": "Buy the front end. Build the brain. Keep the data.",
+    "body": "Your people work in Amazon Quick or your own apps. We build the intelligence in the middle: Vietnamese speech, documents and agents. Your data stays where it lives today.",
+    "question": "Where must your data live?",
+    "options": [
+      { "key": "region", "label": "AWS Region", "caption": "Fastest start. Personal data is de-identified before anything leaves your perimeter." },
+      { "key": "localzone", "label": "Hanoi Local Zone", "caption": "Compute and storage inside Vietnam, managed through the same AWS APIs." },
+      { "key": "onprem", "label": "On-prem", "caption": "Everything inside your data centre, as our Presight proof of concept did at {c:mbbank}." }
+    ],
+    "diagram": {
+      "title": "Business users see Quick; the brain and the data stay with the bank",
+      "subtitle": "Example flow: every contact-centre call becomes insight and a next action",
+      "top": "Experience: we configure",
+      "quick": "Amazon Quick · Dashboards and chat for managers · de-identified aggregates only",
+      "apps": "CRM and bank apps · Next-best action for RMs and contact-centre agents",
+      "boundary": "Below: personal data stays in Vietnam",
+      "middle": "Intelligence: we build",
+      "stt": "Speech to text · Vietnamese, regional accents · benchmarked on the bank's calls",
+      "tagging": "Tagging agents · Intent, complaint, compliance, sales signal, linked to customer",
+      "bottom": "Data: yours, in Vietnam",
+      "recordings": "Call recordings · from the contact centre platform",
+      "store": "Insight store · PII masked · Local Zone or on-prem",
+      "platform": "Your data platform · lakehouse and core stay as they are",
+      "rail": "Governance · on every layer",
+      "railItems": "Identity and access · Audit logs · Human override · Kill switch · Evals gate releases · AI Law evidence pack",
+      "arrows": "audio · tags · context · aggregates",
+      "stateRegion": "Speech to text stays in Vietnam; tagging runs in an AWS Region on de-identified transcripts",
+      "stateLocalzone": "Intelligence runs in the Hanoi Local Zone",
+      "stateOnprem": "Inside the bank's data centre · Quick optional, aggregates only · Presight or the bank's own apps"
+    }
+  },
+  "useCases": {
+    "headline": "Six places to start. Each comes with a KPI and a proof.",
+    "items": [
+      { "key": "contact-centre", "title": "Contact-centre intelligence", "does": "Every call transcribed and tagged: intent, complaints, compliance risk, sales signals", "kpi": "Share of calls reviewed; complaint resolution time", "proof": "Our Vietnamese language research; live demo" },
+      { "key": "rm-copilot", "title": "RM copilot and next-best action", "does": "A brief before every client meeting and the next best product, inside the CRM", "kpi": "Products per client", "proof": "{C:tps} Customer Data Platform: under 5 minutes from event to CRM" },
+      { "key": "credit-memo", "title": "Credit memo from financial statements", "does": "Vietnamese statements read, checked and drafted into a first credit memo", "kpi": "Time to credit decision", "proof": "Our Vietnamese financial data engine (Promvis)" },
+      { "key": "governed-analytics", "title": "Governed analytics for business users", "does": "Plain-language questions answered only from certified metrics", "kpi": "Questions answered without an analyst ticket", "proof": "Presight PoC on-prem at {c:mbbank}" },
+      { "key": "investment-assistant", "title": "Investment assistant for securities and wealth arms", "does": "An AI analyst inside the trading app, with insight on each ticker before the user asks", "kpi": "Returning users; share of questions answered in full", "proof": "T'FOX at {c:tps}, live since April 2026; the next one goes live in 3-4 weeks" },
+      { "key": "ekyc-deepfake", "title": "eKYC deepfake defence", "does": "Detects deepfakes on the phone before they reach onboarding", "kpi": "Fraud stopped at onboarding", "proof": "On-device model for {c:ensign}, under 500 ms per check" }
+    ]
+  },
+  "proof": {
+    "headline": "Systems in production, measured.",
+    "cards": [
+      { "status": "live", "since": "2026-04-10", "reference": true, "title": "T'FOX, AI investing assistant", "client": "{C:tps}", "statusText": "Live since 10 Apr 2026", "body": "72% of questions in scope; 48% of users return and drive 81% of traffic; every question traced across 31 intent classes." },
+      { "status": "poc", "since": "", "reference": true, "title": "Presight, governed AI analytics on-prem", "client": "{C:mbbank}", "statusText": "PoC completed successfully; v2 in build", "body": "Natural-language answers on governed metrics, inside the bank's data centre, with no data leaving the building. Built by our Head of AI Applications, delivered exclusively by CoderPush in Vietnam." },
+      { "status": "delivered", "since": "", "reference": false, "title": "Agent-driven development, handed over", "client": "{C:tpbank}", "statusText": "", "body": "The bank's own team now runs the method without us." },
+      { "status": "live", "since": "", "reference": false, "title": "Customer Data Platform on AWS", "client": "{C:tps}", "statusText": "", "body": "Under 5 minutes from event to CRM; every active client resolved to one profile." },
+      { "status": "delivered", "since": "", "reference": false, "title": "Deepfake detection on the phone", "client": "{C:ensign|Ensign, Singapore}", "statusText": "", "body": "MVP in 8 weeks; under 500 ms per check on a mid-range phone." },
+      { "status": "live", "since": "", "reference": false, "title": "AI ordering assistant", "client": "{C:buymed}", "statusText": "", "body": "35,000+ pharmacies and clinics; 40% faster order processing." }
+    ]
+  },
+  "safety": {
+    "headline": "Evidence before go-live. Measurement after.",
+    "steps": [
+      { "title": "Spec first.", "body": "The specification is the contract, written for people and for models." },
+      { "title": "Evaluate before launch.", "body": "A test set built from your real data; nothing ships without passing it." },
+      { "title": "Humans hold the go/no-go.", "body": "Our engineers own architecture, review and release; nothing merges unattended." },
+      { "title": "Evidence by default.", "body": "Risk class, logs, human override and a kill switch, ready for your risk team and the regulator." }
+    ],
+    "measurement": "Every month you get a report like the one we send {c:tps}: every question traced and classified, what worked, what did not, and what we fix next.",
+    "principles": "Read our AI principles"
+  },
+  "team": {
+    "headline": "The people you will work with.",
+    "people": [
+      { "key": "long", "name": "Long Vu", "title": "Co-founder & Managing Director", "line": "Runs our bank and securities programmes end to end, from scope to go-live. Co-founded Logivan." },
+      { "key": "harley", "name": "Harley Trung", "title": "Co-founder & Chief AI Officer", "line": "Sets how we build, evaluate and govern every AI system we ship. Yale Computer Science; Microsoft; founder of startups in the US and China." },
+      { "key": "ben", "name": "Ben Pham", "title": "Head of AI Applications", "line": "Turns bank data into answers business users can trust. Founder of presight.io; former Chief Data Officer, Siêu Việt Group; former Data Scientist, Microsoft." },
+      { "key": "andy", "name": "Dr. Andy Tran", "title": "Head of AI Research", "line": "Leads our work on Vietnamese language and document AI. PhD, Kanazawa University; built Doctranslate.io; former CTO at Logivan and Waves8; lecturer, VNU International School." }
+    ],
+    "builders": "Thien Tran, Tech Lead, T'FOX · Thien Kieu, Technical Manager, bank AI programmes · Cang Ta, AWS Practice Manager"
+  },
+  "offer": {
+    "headline": "One use case. One quarter. One KPI.",
+    "phases": [
+      { "title": "Weeks 1-2, use-case sprint.", "body": "With your team and AWS in the room: pick the use case and its KPI, build the test set from your data, confirm the risk class." },
+      { "title": "Weeks 3-8, build on your rails.", "body": "Your AWS account, the Hanoi Local Zone or your data centre; your identity and access rules; every release gated by evaluations." },
+      { "title": "Weeks 9-12, live for a named user group.", "body": "With the evidence pack and a monthly measurement report." }
+    ],
+    "line": "AWS funding applied for where eligible. Contracted as consulting services.",
+    "waysIn": "Contact-centre intelligence · Governed analytics with Presight · AI Law readiness review · AI-native engineering for IT",
+    "button": "Book a use-case sprint"
+  },
+  "faq": {
+    "items": [
+      { "key": "data-location", "q": "Where does our data live?", "a": "Where you decide: an AWS Region, the Hanoi Local Zone or your own data centre. Personal data is de-identified before anything leaves your perimeter." },
+      { "key": "ownership", "q": "Who owns the code and the accounts?", "a": "You do. We build in your AWS accounts under your IAM, and you can revoke our access at any time." },
+      { "key": "contract", "q": "How do you contract?", "a": "As a consulting services engagement: a scoped project, or a fee linked to an agreed outcome." },
+      { "key": "aws-funding", "q": "Can AWS help fund it?", "a": "For eligible projects, we apply for AWS funding on your behalf and handle the paperwork." },
+      { "key": "time-to-live", "q": "How fast can we go live?", "a": "A new use case goes live for a named user group within one quarter. Where our product already exists it is faster: an investment assistant like T'FOX goes live in 3-4 weeks." },
+      { "key": "security-review", "q": "How do you pass our security review?", "a": "We are ISO/IEC 27001 certified. We work inside your accounts or data centre, under your access policies, with every action logged, and our due-diligence pack includes the certificate and its scope." },
+      { "key": "aws-only", "q": "Do you only work on AWS?", "a": "No. AWS is our home, but our Presight proof of concept ran fully on-prem at {c:mbbank}, and the same pattern runs wherever your data must live." }
+    ],
+    "button": "Book a 30-minute intro"
+  },
+  "aws": {
+    "when": {
+      "headline": "When to bring us in",
+      "items": [
+        "A GenAI pilot works in a demo but has not reached production.",
+        "The use case needs Vietnamese speech or documents.",
+        "Data must stay in Vietnam or on-prem.",
+        "The bank wants Quick but worries about where its data goes.",
+        "AI Law or SBV deadlines are forcing an inventory of AI systems.",
+        "IT wants AI-native engineering with Kiro, as {c:tpbank} did."
+      ]
+    },
+    "not": {
+      "headline": "What we are not",
+      "text": "Not a large-scale server migration factory, and not a licence reseller that disappears after the sale."
+    },
+    "gains": {
+      "headline": "What the account gains",
+      "text": "T'FOX was {c:tps}'s first workload on AWS. Every new use case we ship on AWS is shared in ACE, and we handle the funding paperwork.",
+      "marketplace": "Presight and Promvis on AWS Marketplace, so a bank can buy them through its own AWS account."
+    },
+    "engage": {
+      "headline": "How to engage",
+      "share": "Share the opportunity in ACE, or [email us](awsEmail) with the bank and the use case.",
+      "reply": "We reply within one business day with a first view and the funding route.",
+      "contact": "Your contact: Cang Ta, AWS Practice Manager.",
+      "downloads": "Downloads: [one-page brief](brief) · [PDF deck](deck)",
+      "questionsTitle": "Five first-call questions",
+      "questions": [
+        "Which AI use case has a sponsor and a KPI but no path to production?",
+        "Where must the data live: an AWS Region, Vietnam only, or on-prem?",
+        "Is Vietnamese speech or document handling involved?",
+        "Who signs off AI risk today, and have they mapped the AI Law deadlines?",
+        "Is there budget this quarter, or should we apply for AWS funding first?"
+      ]
+    }
+  },
+  "video": {
+    "beats": [
+      { "start": 0, "end": 15, "text": "Most banks in Vietnam have AI pilots. Very few have AI running in production, with customers, every day." },
+      { "start": 15, "end": 40, "text": "The model is not the hard part anymore. Vietnamese data is. Governance is. And since March, the AI Law is. That is where pilots stall." },
+      { "start": 40, "end": 65, "text": "We build the part in the middle. Your people keep their tools, we build the intelligence in Vietnamese, and your data stays where it must. Our investing assistant has run at {c:tps} since April. Our analytics ran fully on-prem inside {c:mbbank}." },
+      { "start": 65, "end": 90, "text": "So here is our offer: one use case, one quarter, one KPI, with AWS funding where eligible. Book a sprint below, and let's get one thing into production." }
+    ]
+  }
+}

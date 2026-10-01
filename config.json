@@ -1,0 +1,14 @@
+{
+  "clients": { "tps": true, "mbbank": true, "tpbank": true, "ensign": true, "buymed": true, "sleek": true, "nanoco": true },
+  "people": { "long": false, "harley": true, "ben": true, "andy": true },
+  "flags": {
+    "regulationDates": false,
+    "oneDayReply": false,
+    "videoReady": true,
+    "downloads": false,
+    "marketplace": false,
+    "isoMark": false,
+    "aiPolicyUrl": ""
+  },
+  "links": { "booking": "", "email": "", "awsContactEmail": "" }
+}

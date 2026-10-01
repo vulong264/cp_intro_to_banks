@@ -1,0 +1,7 @@
+# macOS
+.DS_Store
+
+# Working documents at the top level (the brief, the copy documents, drafts) stay out of the
+# public repository. To publish one, add an exception line for it below.
+/*.md
+!/README.md
