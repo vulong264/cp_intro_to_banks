@@ -93,6 +93,10 @@ p, .eng li, .qs li { max-width: var(--measure); }
 .sw button:hover { color: var(--tx); }
 .sw button[aria-pressed=true] { background: var(--line); color: var(--tx); }
 html:not(.js) .sw { display: none; }
+/* The PDF button in the header. On a narrow screen only its icon shows; the words stay for screen readers. */
+.hb { display: inline-flex; align-items: center; gap: 8px; min-height: 42px; padding: 4px 12px; border: 1px solid var(--line); border-radius: 8px; font-weight: 500; font-size: 13px; line-height: 1.25; color: var(--tx); text-decoration: none; white-space: nowrap; transition: border-color .2s ease-out; }
+.hb:hover { border-color: var(--tx2); color: var(--tx); }
+@media (max-width: 479px) { .hb span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); } }
 @media (max-width: 719px) { .hd-in { min-height: 56px; } }
 
 .hero { position: relative; overflow: hidden; padding: 64px 0 48px; }
@@ -331,6 +335,64 @@ html:not(.js) .vp, html:not(.js) [data-video] { display: none; }
   .vd-bar .btn2 { min-height: 40px; padding: 9px 16px; background: rgba(10, 10, 10, .72); }
 }
 
+/* Print, and the PDF the build makes from this page: light paper, every part shown, nothing that needs a click.
+   The green is a darker shade of the brand green, so that it reads as text on white. */
+@page { size: A4; margin: 12mm 12mm 16mm; @bottom-left { content: "coderpush.com/banks"; font: 500 8pt/1 Geist, sans-serif; color: #5C5C5C; } @bottom-right { content: counter(page) " / " counter(pages); font: 500 8pt/1 Geist, sans-serif; color: #5C5C5C; } }
+@media print {
+  :root { --bg: #fff; --bg2: #fff; --card: #fff; --line: #D4D4D4; --tx: #0A0A0A; --tx2: #404040; --tx3: #5C5C5C; --ac: #4B7811; --on: #fff; color-scheme: light; }
+  html { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+  .sw, .hb, .vp, [data-video], [data-pdf], .vd, #privacy, .pf a, .hero::before, .hero::after, summary::after, .ft .creds { display: none !important; }
+  .rv, .dg-l, .dg-rail, .bd, .bd-v, .ar i { opacity: 1 !important; }
+  .rv, .dg-l, .dg-rail, .bar i { transform: none !important; }
+  .ar path { stroke-dashoffset: 0 !important; }
+  /* Paper is read closer than a screen: smaller headings and tighter spacing, the same body text. */
+  h1 { font-size: 60px; }
+  h2 { font-size: 32px; margin-bottom: 16px; }
+  .hero h1 { margin-bottom: 16px; }
+  .sub { font-size: 20px; margin-bottom: 24px; }
+  .num { font-size: 64px; }
+  .now { font-size: 28px; margin: 16px 0; }
+  .lead, .line { font-size: 18px; }
+  .lead, .cap { margin-bottom: 16px; }
+  .w { padding: 0; }
+  .hd { position: static; border: 0; }
+  .hd-in { min-height: 0; padding: 0 0 16px; }
+  .hero { padding: 0 0 16px; }
+  .creds { margin-bottom: 16px; }
+  .hero .btns { margin-bottom: 24px; }
+  .hr, .ft .w { display: block; }
+  .lw { padding-bottom: 8px; }
+  .sec { padding: 16px 0; }
+  .ft { padding: 8px 0 0; font-size: 13px; }
+  .ft .wm { font-size: 18px; margin: 0 16px 0 0; }
+  .ft p { display: inline; margin: 0 16px 0 0; }
+  .nums { margin: 16px 0; }
+  .dg { padding: 16px 24px; }
+  .steps { margin-bottom: 16px; }
+  .card, .steps li, .phases li, .meas { padding: 16px; }
+  .card { gap: 10px; }
+  .avp { width: 72px; height: 72px; }
+  .phases { margin-bottom: 16px; }
+  .faq { max-width: none; columns: 2; column-gap: 32px; border: 0; }
+  summary { padding: 12px 0 8px; font-size: 17px; }
+  .faq p { padding-bottom: 12px; }
+  .sec .btns { margin-top: 16px; }
+  .lwp { justify-content: space-between; gap: 16px 24px; padding: 16px 24px; }
+  .lwp, .lchip { background: #fff; border: 1px solid var(--line); }
+  .wmk { color: var(--tx); }
+  .av { background: #fff; }
+  /* Whole blocks stay on one page, and a heading stays with what follows it. */
+  h2, h3, legend, summary, .ph, .ch, .sh, .lead, .opts, .dg-cap { break-after: avoid; }
+  h2, p, .card, .steps li, .phases li, .chk li, .tl li, .faq details, .meas, .nums, .lwp, .chips, .qs, .ft, .dg, #clock .w { break-inside: avoid; }
+  .btns, .chips, .bld, .ft { break-before: avoid; }
+}
+/* The build prints at a scale that gives the sheet a wide layout; there the cards go three and four across. */
+@media print and (min-width: 960px) {
+  .grid, .team { grid-template-columns: repeat(3, 1fr); }
+  .steps { grid-template-columns: repeat(4, 1fr); }
+}
+
 @media (prefers-reduced-motion: no-preference) {
   .js .rv { transition: opacity .4s ease-out, transform .4s ease-out; }
   .js .rv:not(.in) { opacity: 0; transform: translateY(16px); }
@@ -397,6 +459,7 @@ html:not(.js) .vp, html:not(.js) [data-video] { display: none; }
 <header class="hd">
 <div class="w hd-in">
 <a class="wm" href="https://coderpush.com">{{#if gen.wordmark}}<span class="logo L-{{v gen.wordmark}}" role="img" aria-label="CoderPush"></span>{{else}}coderpush<span>.</span>{{/if}}</a>
+{{#if cfg.flags.profilePdf}}<a class="hb" href="{{v gen.pdf.file}}" data-pdf="{{v gen.pdf.stem}}" download data-cta="header-pdf"><svg class="ic" aria-hidden="true"><use href="#i-download"/></svg><span>{{t ui.downloadPdf}}</span></a>{{/if}}
 <div class="sw sw-lang">
 <button type="button" data-lang-btn="en" aria-pressed="true">{{t ui.lang.en}}</button>
 <button type="button" data-lang-btn="vi" aria-pressed="false">{{t ui.lang.vi}}</button>
@@ -620,7 +683,7 @@ html:not(.js) .vp, html:not(.js) [data-video] { display: none; }
 <section class="sec alt" id="faq" data-sec="faq">
 <div class="w">
 <div class="faq rv">{{#each faq.items as q}}<details data-faq="{{v q.key}}"><summary><span>{{t q.q}}</span></summary><p>{{t q.a}}</p></details>{{/each}}</div>
-<div class="btns">{{#lang}}<a class="btn {{@lang}}" href="{{a gen.href.intro}}"{{#if cfg.links.booking}} target="_blank" rel="noopener"{{/if}} data-cta="faq-intro">{{t faq.button}}<svg class="ic" aria-hidden="true"><use href="#i-arrow"/></svg></a>{{/lang}}</div>
+<div class="btns">{{#lang}}<a class="btn {{@lang}}" href="{{a gen.href.intro}}"{{#if cfg.links.booking}} target="_blank" rel="noopener"{{/if}} data-cta="faq-intro">{{t faq.button}}<svg class="ic" aria-hidden="true"><use href="#i-arrow"/></svg></a>{{/lang}}{{#if cfg.flags.profilePdf}}<a class="btn btn2" href="{{v gen.pdf.file}}" data-pdf="{{v gen.pdf.stem}}" download data-cta="faq-pdf"><svg class="ic l" aria-hidden="true"><use href="#i-download"/></svg>{{t ui.downloadPdf}}</a>{{/if}}</div>
 </div>
 </section>
 
@@ -707,6 +770,10 @@ html:not(.js) .vp, html:not(.js) [data-video] { display: none; }
     // Language switch: updates the URL without a reload and keeps the reader in place. The door comes only from ?door=aws.
     function sync() {
       all('[data-lang-btn]').forEach(function (b) { b.setAttribute('aria-pressed', String(b.getAttribute('data-lang-btn') === lang())); });
+      // The PDF link follows the language and the door in view.
+      all('[data-pdf]').forEach(function (a) {
+        a.setAttribute('href', (W.__b || '') + a.getAttribute('data-pdf') + (door() === 'aws' ? 'aws-' : '') + lang() + '.pdf');
+      });
     }
     function setUrl() {
       var q = location.search.replace(/^\?/, '').split('&').filter(function (p) { return p && !/^(lang|door)=/.test(p); });
@@ -807,6 +874,11 @@ html:not(.js) .vp, html:not(.js) [data-video] { display: none; }
       }, { threshold: 0.15 });
       targets.forEach(function (el) { io.observe(el); });
     }
+    // Printing: every answer is opened and every part is shown, scrolled into view or not.
+    W.addEventListener('beforeprint', function () {
+      all('details').forEach(function (el) { if (!el.open) { el._p = 1; el.open = true; } });
+      targets.forEach(function (el) { el.classList.add(el.classList.contains('dg') ? 'built' : 'in'); });
+    });
 
     // Deployment selector: the choice sits in the URL hash.
     var radios = all('input[name=deploy]');
@@ -822,7 +894,11 @@ html:not(.js) .vp, html:not(.js) [data-video] { display: none; }
 
     // Analytics events.
     all('details[data-faq]').forEach(function (el) {
-      el.addEventListener('toggle', function () { if (el.open) cpTrack('faq_open', { question: el.getAttribute('data-faq') }); });
+      el.addEventListener('toggle', function () {
+        // An answer opened for printing is not a reader opening it.
+        if (el._p) { el._p = 0; return; }
+        if (el.open) cpTrack('faq_open', { question: el.getAttribute('data-faq') });
+      });
     });
     function ctaClick(name) {
       var p = { cta: name };

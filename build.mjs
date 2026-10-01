@@ -2,7 +2,8 @@
 // Builds dist/banks.html and dist/HANDOVER.md from config.json, content/en.json,
 // content/vi.json and template.html. Plain Node 18 or later, no dependencies.
 // It also renders dist/og-banks.png when Playwright or a local Chrome is available,
-// and with flags.videoReady on it writes the film (dist/banks-film.html) and its poster.
+// with flags.videoReady on it writes the film (dist/banks-film.html) and its poster, and
+// with flags.profilePdf on it prints the page to PDF with a local Chrome, once per language and door.
 //
 //   node build.mjs                    normal build
 //   node build.mjs --no-og            skip the preview image
@@ -38,6 +39,14 @@ const FILES = {
   brief: { en: '/banks/coderpush-banks-brief-en.pdf', vi: '/banks/coderpush-banks-brief-vi.pdf' },
   deck: { en: '/banks/coderpush-banks-deck-en.pdf', vi: '/banks/coderpush-banks-deck-vi.pdf' },
 };
+// The page itself as a PDF, one per language and door, printed by the build (see makePdfs). The page's
+// script builds the same names from the stem, so the link follows the language and door in view.
+const PDF_STEM = 'coderpush-banks-profile-';
+const DOORS = ['bank', 'aws'];
+const pdfName = (lang, door) => `${PDF_STEM}${door === 'aws' ? 'aws-' : ''}${lang}.pdf`;
+// Chrome's print scale. At 0.75 an A4 sheet lays out like a screen about 1060 px wide, and body text prints near 9.5 pt.
+const PDF_SCALE = 0.75;
+const PDF_CREATOR = 'coderpush.com/banks';
 // Logo files are embedded when they exist in assets/logos, named <key>.svg (or .png, .webp, .jpg).
 // Client logos appear only while that client's switch is on. The ISO slot takes the certification
 // body's mark, never the ISO logo, and only while flags.isoMark is on.
@@ -101,6 +110,9 @@ checkOutput('dist/banks.html', html);
 const bytes = Buffer.byteLength(html);
 if (bytes >= MAX_BYTES) errors.push(`dist/banks.html is ${kb(bytes)}; it must stay under ${kb(MAX_BYTES)}`);
 if (errors.length) stop(errors);
+// The PDFs are printed from the finished page before anything is written, so a failure leaves dist/ as it was.
+const pdfs = cfg.flags.profilePdf ? await makePdfs(html) : null;
+if (errors.length) stop(errors);
 
 // 5. Write the page, the preview image and the handover note.
 const outDir = path.resolve(ROOT, args.out);
@@ -118,6 +130,13 @@ checkOutput('dist/HANDOVER.md', note);
 if (errors.length) stop(errors);
 fs.writeFileSync(path.join(outDir, 'banks.html'), html);
 fs.writeFileSync(path.join(outDir, 'HANDOVER.md'), note);
+// The PDFs sit next to the page. A build without them clears them from the out folder.
+for (const l of LANGS) for (const d of DOORS) {
+  const f = path.join(outDir, pdfName(l, d));
+  const made = pdfs && pdfs.find((x) => x.name === pdfName(l, d));
+  if (made) fs.writeFileSync(f, made.data);
+  else if (fs.existsSync(f)) fs.rmSync(f);
+}
 // The film and its poster sit next to the page. A build without the film clears them from the out folder.
 if (filmOut) {
   fs.writeFileSync(path.join(outDir, FILES.film), filmOut.text);
@@ -191,7 +210,7 @@ function validateConfig() {
     if (typeof v !== 'boolean') errors.push(`${args.config}: people.${k} must be true or false`);
     if (!team.includes(k)) errors.push(`${args.config}: people.${k} is not in the team list`);
   }
-  for (const k of ['regulationDates', 'oneDayReply', 'videoReady', 'downloads', 'marketplace', 'isoMark']) {
+  for (const k of ['regulationDates', 'oneDayReply', 'videoReady', 'profilePdf', 'downloads', 'marketplace', 'isoMark']) {
     if (typeof cfg.flags[k] !== 'boolean') errors.push(`${args.config}: flags.${k} must be true or false`);
   }
   if (typeof cfg.flags.aiPolicyUrl !== 'string') errors.push(`${args.config}: flags.aiPolicyUrl must be a string`);
@@ -359,6 +378,8 @@ function makeGen(lang) {
       ],
     }).replace(/</g, '\\u003c');
 
+    // The PDF link: without JavaScript it is the English bank file, which is the view shown then.
+    g.pdf = { stem: PDF_STEM, file: pdfName('en', 'bank') };
     // The film: where the page finds it and its poster, and its length for the badge on the poster.
     g.video = { file: FILES.film, poster: FILES.poster, duration: film ? film.duration : '' };
     if (cfg.flags.isoMark && !logos['iso-27001']) errors.push(`flags.isoMark is on but ${LOGO_DIR}/iso-27001.svg is missing. Add the certification body's mark (never the ISO logo) or switch the flag off.`);
@@ -458,6 +479,118 @@ function embedFilm(f, href) {
   const at = src.toLowerCase().lastIndexOf('</body>');
   const out = `${src.slice(0, at)}<script>\n${read(FILM_EMBED).trim()}\n</script>\n${src.slice(at)}`;
   return { text: out, bytes: Buffer.byteLength(out), sent: zlib.gzipSync(out, { level: 9 }).length };
+}
+
+// The page as a PDF -------------------------------------------------------------
+
+// Prints the finished page with a local Chrome, once per language and door. The page's own print
+// styles (template.html, @media print) decide how it looks; this only opens each view and prints it.
+async function makePdfs(page) {
+  const chrome = findChrome();
+  if (!chrome) {
+    errors.push('flags.profilePdf is on but no Chrome was found to print the PDFs. Install Google Chrome, or set CHROME_PATH, or switch the flag off.');
+    return null;
+  }
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'banks-pdf-'));
+  const file = path.join(tmp, 'banks.html');
+  fs.writeFileSync(file, page);
+  const stamp = `${today.replace(/-/g, '')}000000`;
+  const out = [];
+  const c = openChrome(chrome, path.join(tmp, 'profile'));
+  try {
+    const { targetId } = await c.send('Target.createTarget', { url: 'about:blank' });
+    const { sessionId } = await c.send('Target.attachToTarget', { targetId, flatten: true });
+    const tab = (method, params) => c.send(method, params, sessionId);
+    await tab('Page.enable');
+    // Reduced motion shows every part at once, with nothing waiting to be scrolled into view.
+    await tab('Emulation.setEmulatedMedia', { features: [{ name: 'prefers-reduced-motion', value: 'reduce' }] });
+    for (const lang of LANGS) for (const door of DOORS) {
+      const name = pdfName(lang, door);
+      const loaded = c.once('Page.loadEventFired', sessionId);
+      await tab('Page.navigate', { url: `${pathToFileURL(file).href}?lang=${lang}${door === 'aws' ? '&door=aws' : ''}` });
+      await loaded;
+      const fonts = await tab('Runtime.evaluate', { expression: "document.fonts.ready.then(() => document.fonts.check('400 17px Geist') && document.fonts.check('600 17px Geist'))", awaitPromise: true, returnByValue: true });
+      if (!fonts.result || fonts.result.value !== true) {
+        errors.push(`${name}: the Geist font did not load, so the PDF would print in another font. Is the network reachable?`);
+        continue;
+      }
+      const printed = await tab('Page.printToPDF', { printBackground: true, preferCSSPageSize: true, scale: PDF_SCALE, marginTop: 0, marginBottom: 0, marginLeft: 0, marginRight: 0, generateTaggedPDF: true, generateDocumentOutline: true });
+      // Chrome stamps the time of printing, and names itself as the creator. The build date and the page's
+      // address go in their place, at the same length, so the same page gives the same file.
+      const text = Buffer.from(printed.data, 'base64').toString('latin1')
+        .replace(/\/(CreationDate|ModDate) \(D:\d{14}/g, (m, key) => `/${key} (D:${stamp}`)
+        .replace(/\/Creator \(((?:[^()\\]|\\.)*)\)/, (m, v) => (v.length >= PDF_CREATOR.length ? `/Creator (${PDF_CREATOR.padEnd(v.length)})` : m));
+      const pages = (text.match(/\/Type\s*\/Page[^s]/g) || []).length;
+      const strays = [...new Set([...text.matchAll(/\/FontName\s*\/([A-Za-z0-9+_-]+)/g)].map((m) => m[1].replace(/^[A-Z]{6}\+/, '')))].filter((f) => !f.startsWith('Geist'));
+      if (!text.startsWith('%PDF-') || pages < 2 || pages > 12) errors.push(`${name}: Chrome did not give a usable PDF (${pages} pages).`);
+      if (strays.length) errors.push(`${name}: the PDF uses ${strays.join(', ')} besides Geist.`);
+      out.push({ name, lang, door, pages, data: Buffer.from(text, 'latin1') });
+    }
+  } catch (e) {
+    errors.push(`Chrome could not print the PDFs: ${e.message}`);
+  } finally {
+    await c.close();
+    try { fs.rmSync(tmp, { recursive: true, force: true, maxRetries: 10, retryDelay: 200 }); } catch { /* it is in the temp folder anyway */ }
+  }
+  return out;
+}
+
+// Chrome over its debugging pipe: no port, no package. Messages are JSON, each ended by a zero byte.
+function openChrome(chrome, profile) {
+  const proc = spawn(chrome, ['--headless=new', '--remote-debugging-pipe', `--user-data-dir=${profile}`, '--no-first-run',
+    '--no-default-browser-check', '--disable-gpu', '--hide-scrollbars', 'about:blank'], { stdio: ['ignore', 'ignore', 'ignore', 'pipe', 'pipe'] });
+  const [, , , toChrome, fromChrome] = proc.stdio;
+  let buf = Buffer.alloc(0), id = 0, dead = null;
+  const pending = new Map();
+  const waiters = [];
+  const fail = (err) => {
+    dead = dead || err;
+    for (const { reject } of pending.values()) reject(dead);
+    pending.clear();
+    for (const w of waiters.splice(0)) w.reject(dead);
+  };
+  fromChrome.on('data', (chunk) => {
+    buf = Buffer.concat([buf, chunk]);
+    for (let end = buf.indexOf(0); end >= 0; end = buf.indexOf(0)) {
+      const msg = JSON.parse(buf.subarray(0, end).toString('utf8'));
+      buf = buf.subarray(end + 1);
+      if (msg.id && pending.has(msg.id)) {
+        const { resolve, reject } = pending.get(msg.id);
+        pending.delete(msg.id);
+        if (msg.error) reject(new Error(msg.error.message)); else resolve(msg.result);
+      } else if (msg.method) {
+        for (const w of waiters.slice()) {
+          if (w.method !== msg.method || w.sessionId !== msg.sessionId) continue;
+          waiters.splice(waiters.indexOf(w), 1);
+          w.resolve(msg.params);
+        }
+      }
+    }
+  });
+  proc.once('exit', () => fail(new Error('Chrome closed before the work was done')));
+  proc.once('error', (e) => fail(e));
+  toChrome.on('error', () => {});
+  const wait = (ms) => new Promise((resolve) => { setTimeout(resolve, ms).unref(); });
+  const within = (promise, what, ms = 60000) => Promise.race([promise, wait(ms).then(() => { throw new Error(`Chrome did not answer ${what} within ${ms / 1000} seconds`); })]);
+  return {
+    send(method, params = {}, sessionId) {
+      return within(new Promise((resolve, reject) => {
+        if (dead) { reject(dead); return; }
+        const n = ++id;
+        pending.set(n, { resolve, reject });
+        toChrome.write(`${JSON.stringify({ id: n, method, params, sessionId })}\0`);
+      }), method);
+    },
+    once(method, sessionId) {
+      return within(new Promise((resolve, reject) => { waiters.push({ method, sessionId, resolve, reject }); }), method);
+    },
+    async close() {
+      const gone = new Promise((resolve) => proc.once('exit', resolve));
+      if (!dead) { try { await Promise.race([this.send('Browser.close'), wait(1000)]); } catch { /* it has gone already */ } }
+      proc.kill();
+      await Promise.race([gone, wait(3000)]);
+    },
+  };
 }
 
 // Template engine -------------------------------------------------------------
@@ -592,6 +725,9 @@ function minify(page) {
     .replace(/<script>([\s\S]*?)<\/script>/g, (m, js) => hold(`<script>${minJs(js)}</script>`))
     .replace(/<script type="text\/vtt"[\s\S]*?<\/script>/g, (m) => hold(m));
   out = out.replace(/\n[ \t]+/g, '\n').replace(/\n{2,}/g, '\n');
+  // A plain attribute value needs no quotes in HTML. A value that ends a self-closing tag keeps them,
+  // or the slash would become part of it.
+  out = out.replace(/<[a-zA-Z][^>]*>/g, (tag) => tag.replace(/(\s[a-zA-Z-]+)="([A-Za-z0-9_.:#-]+)"(?=[\s>])/g, '$1=$2'));
   return out.replace(/\u0000(\d+)\u0000/g, (m, i) => held[+i]);
 }
 
@@ -645,6 +781,7 @@ function handover({ bytes, hash, ogReady }) {
   const files = [['banks.html', 'public/banks/index.html']];
   if (ogReady) files.push(['og-banks.png', 'public/banks/og-banks.png']);
   if (f.videoReady) files.push([FILES.film, `public/banks/${FILES.film}`], [FILES.poster, `public/banks/${FILES.poster}`]);
+  if (pdfs) for (const x of pdfs) files.push([x.name, `public/banks/${x.name}`]);
   if (f.downloads) {
     for (const l of LANGS) files.push([`the one-page brief (${l.toUpperCase()}), from LV`, `public${FILES.brief[l]}`]);
     for (const l of LANGS) files.push([`the PDF deck (${l.toUpperCase()}), from LV`, `public${FILES.deck[l]}`]);
@@ -660,6 +797,7 @@ function handover({ bytes, hash, ogReady }) {
     L.push(`The film and its poster are addressed relative to the page. That works at /banks/ with the trailing slash, which is how the site serves pages. If the page is ever served at /banks without the slash, it switches to /banks/ addresses by itself.`, '');
     L.push(`The site must allow its own pages to be shown in a frame on the same site. Today it sends no X-Frame-Options header and no frame-ancestors rule, so nothing needs changing. If one is added later, keep the same origin allowed for /banks/${FILES.film}.`, '');
   }
+  if (pdfs) L.push(`The ${pdfs.length} PDF files are the page itself, printed for A4 paper: one per language, for the bank door and for the AWS door. The Download PDF button in the header and at the end of the page fetches the one for the language and door in view. They are addressed relative to the page, like the film, and each new build replaces them.`, '');
   L.push('## Routing', '', 'coderpush.com is a Next.js site on Vercel with trailing slashes, so the page must answer at both /banks and /banks/. Merge this into next.config.js:', '');
   L.push('```js', 'async rewrites() {', '  return [', "    { source: '/banks', destination: '/banks/index.html' },", "    { source: '/banks/', destination: '/banks/index.html' },", '  ];', '},', 'async redirects() {', '  return [', '    // Temporary until launch week, then set permanent: true.', "    { source: '/aws', destination: '/banks?door=aws', permanent: false },", "    { source: '/pitchdeck', destination: '/banks', permanent: false },", '  ];', '},', '```', '');
   L.push('## Analytics', '');
@@ -672,7 +810,7 @@ function handover({ bytes, hash, ogReady }) {
   L.push('| section_view | A section reaches the middle of the screen, once per door | section, door |');
   L.push('| deploy_select | An option in the diagram\'s deployment selector | option |');
   L.push('| faq_open | An FAQ answer opens | question |');
-  L.push(`| cta_click | A booking, share${f.videoReady ? ', film' : ''} or download button, or an email link | cta, and for or door |`, '');
+  L.push(`| cta_click | A booking, share${f.videoReady ? ', film' : ''}${f.profilePdf ? ', PDF' : ''} or download button, or an email link | cta, and for or door |`, '');
   L.push('Without the script tag the page sends nothing, and it never sets cookies, so it also works opened from disk.', '');
   L.push('## Addresses to test', '');
   L.push('- `/banks?lang=vi` and `/banks?lang=en` pick the language. Without `lang`, a browser set to Vietnamese gets Vietnamese.');
@@ -683,6 +821,7 @@ function handover({ bytes, hash, ogReady }) {
   L.push('- On a phone, /banks and /banks/ open the bank door, and /aws opens the AWS door.');
   L.push('- Click a button on the live page and check that the click shows up in Vercel Analytics.');
   if (f.videoReady) L.push('- Press play on the poster on the live page: the film opens in the page and plays.');
+  if (pdfs) L.push('- Press Download PDF on the live page, once in English and once in Vietnamese: each gives a PDF in that language.');
   return `${L.join('\n')}\n`;
 }
 
@@ -811,6 +950,7 @@ function report() {
   console.log(`  links:         booking ${cfg.links.booking || '-'}, email ${cfg.links.email || '-'}, AWS ${cfg.links.awsContactEmail || '-'}`);
   console.log(`  wrote ${path.relative(ROOT, path.join(outDir, 'banks.html')) || 'banks.html'} (${kb(bytes)}), HANDOVER.md${ogBy ? `, og-banks.png (${ogBy})` : ''}`);
   console.log('  checks passed: no em or en dash, no unapproved client or hidden person, under 150 KB');
+  if (pdfs) console.log(`  PDFs:          ${pdfs.map((x) => `${x.name} (${x.pages} pages, ${kb(x.data.length)})`).join(', ')}`);
   if (filmOut) console.log(`  film:          ${FILES.film} (${film.duration || 'length unknown'}, ${mb(filmOut.bytes)}, about ${mb(filmOut.sent)} as sent) and ${FILES.poster}, written next to the page`);
   const wanted = ['coderpush', 'aws-advanced-tier', 'aws-ai-competency', ...(cfg.flags.isoMark ? ['iso-27001'] : []), ...Object.keys(cfg.clients).filter((k) => cfg.clients[k])];
   const used = gens.en.logosUsed;
