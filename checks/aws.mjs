@@ -42,7 +42,10 @@ try {
   ok('the file has no on-prem, Copilot or own-data-centre wording, in either language', !hit, hit ? src.slice(Math.max(0, hit.index - 60), hit.index + 60).replace(/\s+/g, ' ') : `${Math.round(src.length / 1000)} KB read`);
   ok('the file has no em dash or en dash', !new RegExp(`[${String.fromCharCode(0x2013, 0x2014)}]`).test(src));
   const head = await p.eval(`({ robots: (document.querySelector('meta[name=robots]') || {}).content || '', canonical: document.querySelector('link[rel=canonical]').getAttribute('href'), og: document.querySelector('meta[property="og:image"]').content, title: document.title, desc: document.querySelector('meta[name=description]').content })`);
-  ok('head: its own address, not listed by search engines, its own preview image', head.robots === 'noindex' && head.canonical === 'https://coderpush.com/aws' && head.og === 'https://coderpush.com/aws/og-aws.png' && /on AWS/.test(head.title) && !BANNED.test(head.desc), JSON.stringify(head));
+  ok('head: its own address, open to search engines, its own preview image', head.robots === '' && head.canonical === 'https://coderpush.com/aws' && head.og === 'https://coderpush.com/aws/og-aws.png' && /on AWS/.test(head.title) && !BANNED.test(head.desc), JSON.stringify(head));
+
+  const mail = await p.eval(`({ share: document.querySelector('a[data-cta=hero-share].en').getAttribute('href'), engage: (document.querySelector('#offer .eng a[href^="mailto:"]') || { getAttribute: () => '' }).getAttribute('href'), footer: [...document.querySelectorAll('.ft a[href^="mailto:"]')].map(a => a.textContent).join(), privacy: document.getElementById('privacy').innerText.replace(/\\s+/g, ' ') })`);
+  ok('the contact address for AWS teams is on the buttons, in How to engage, in the footer and in the privacy note', mail.share.startsWith('mailto:aws.opty@coderpush.com?subject=') && mail.engage.startsWith('mailto:aws.opty@coderpush.com') && mail.footer.includes('aws.opty@coderpush.com') && /opt-out: aws\.opty@coderpush\.com/.test(mail.privacy), JSON.stringify({ share: mail.share, footer: mail.footer }));
 
   // 3. Sections, in the order an AWS reader meets them.
   const order = await p.eval(`[...document.querySelectorAll('main > section')].filter(s => s.getClientRects().length).map(s => s.id)`);
@@ -71,7 +74,8 @@ try {
   await fresh();
   await p.viewport(1280, 900);
   await p.goto(`${HTTP}?for=AWS+Vietnam&uc=ai-law-evidence,contact-centre,rm-copilot&lang=en`);
-  const pl = await p.eval(`({ greet: document.querySelector('.pf').innerText.trim(), order: [...document.querySelectorAll('.ucs [data-uc]')].map(c => c.getAttribute('data-uc')).slice(0, 3), picked: document.querySelectorAll('.ucs .picked').length })`);
+  const pl = await p.eval(`({ share: decodeURIComponent(document.querySelector('a[data-cta=hero-share].en').getAttribute('href')), greet: document.querySelector('.pf').innerText.trim(), order: [...document.querySelectorAll('.ucs [data-uc]')].map(c => c.getAttribute('data-uc')).slice(0, 3), picked: document.querySelectorAll('.ucs .picked').length })`);
+  ok('personal link: the email subject names the reader\'s company', pl.share.startsWith('mailto:aws.opty@coderpush.com') && pl.share.includes('AWS Vietnam'), pl.share);
   ok('personal link: greeting, picked use cases first, a key from the banks page ignored', pl.greet.startsWith('Prepared for AWS Vietnam') && pl.order.slice(0, 2).join() === 'ai-law-evidence,contact-centre' && pl.picked === 2, JSON.stringify(pl));
 
   // 5. The pattern: two places for the data, both on AWS.

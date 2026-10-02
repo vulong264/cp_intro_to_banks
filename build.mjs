@@ -45,13 +45,13 @@ const FILES = {
 // The pages. All come from template.html. A page with "overrides" gets content/<overrides>.<lang>.json
 // merged over the shared copy, and the build stops if its output matches one of its "banned" patterns.
 const PAGES = [
-  { key: 'banks', file: 'banks.html', path: '/banks', og: 'og-banks.png', pdf: 'coderpush-banks-profile-', doors: ['bank', 'aws'], film: true },
-  { key: 'aws', file: 'aws.html', path: '/aws', og: 'og-aws.png', pdf: 'coderpush-aws-profile-', doors: ['aws'], film: false, overrides: 'aws', noindex: true,
+  { key: 'banks', file: 'banks.html', path: '/banks', og: 'og-banks.png', pdf: 'coderpush-banks-profile-', door: 'bank', film: true },
+  { key: 'aws', file: 'aws.html', path: '/aws', og: 'og-aws.png', pdf: 'coderpush-aws-profile-', door: 'aws', film: false, overrides: 'aws',
     banned: [['on-prem wording', /on[\s-]?prem/i], ['the word Copilot', /copilot/i], ['a data centre of the bank\'s own', /data cent(?:re|er)|trung tâm dữ liệu/i]] },
 ];
-// Each page as a PDF, one per language and door, printed by the build (see makePdfs). The page's script
-// builds the same names from the stem, so the link follows the language and door in view.
-const pdfName = (pg, lang, door) => `${pg.pdf}${pg.doors.length > 1 && door === 'aws' ? 'aws-' : ''}${lang}.pdf`;
+// Each page as a PDF, one per language, printed by the build (see makePdfs). The page's script builds the
+// same names from the stem, so the link follows the language in view.
+const pdfName = (pg, lang) => `${pg.pdf}${lang}.pdf`;
 // Chrome's print scale. At 0.75 an A4 sheet lays out like a screen about 1060 px wide, and body text prints near 9.5 pt.
 const PDF_SCALE = 0.75;
 // Logo files are embedded when they exist in assets/logos, named <key>.svg (or .png, .webp, .jpg).
@@ -134,8 +134,8 @@ if (errors.length) stop(errors);
 for (const b of built) {
   fs.writeFileSync(path.join(outDir, b.pg.file), b.html);
   // The PDFs sit next to their page. A build without them clears them from the out folder.
-  for (const l of LANGS) for (const d of b.pg.doors) {
-    const name = pdfName(b.pg, l, d);
+  for (const l of LANGS) {
+    const name = pdfName(b.pg, l);
     const made = b.pdfs && b.pdfs.find((x) => x.name === name);
     if (made) fs.writeFileSync(path.join(outDir, name), made.data);
     else if (fs.existsSync(path.join(outDir, name))) fs.rmSync(path.join(outDir, name));
@@ -302,7 +302,7 @@ function validateConfig() {
     if (cfg.links[k] && !EMAIL.test(cfg.links[k])) errors.push(`${args.config}: links.${k} is not an email address`);
   }
   if (!cfg.links.email) warnings.push('links.email is empty: the footer and privacy note have no address' + (cfg.links.booking ? '.' : ', and the booking buttons open an email with no recipient.'));
-  if (!cfg.links.awsContactEmail && !cfg.links.email) warnings.push('links.awsContactEmail is empty: the AWS door\'s "Share an opportunity" opens an email with no recipient.');
+  if (!cfg.links.awsContactEmail && !cfg.links.email) warnings.push('links.awsContactEmail is empty: "Share an opportunity" on the AWS page opens an email with no recipient.');
 }
 
 function parity(a, b, p, files = ['content/en.json', 'content/vi.json']) {
@@ -381,10 +381,15 @@ function makeGen(lang) {
   const plain = (s) => text(s, lang, false);
   const mailto = (to, subject) => `mailto:${to}?subject=${encodeURIComponent(subject)}`;
   const awsTo = L.awsContactEmail || L.email;
-  // A page with the AWS door alone is written for AWS teams; the banks page has both doors.
-  const aws = page.doors.length === 1 && page.doors[0] === 'aws';
+  // Each page is written for one kind of reader: banks, or AWS teams.
+  const aws = page.door === 'aws';
+  const awsPage = PAGES.find((x) => x.door === 'aws');
+  // The address in the footer and the privacy note. The AWS page falls back to the address AWS teams write to.
+  const contact = L.email || (aws ? L.awsContactEmail : '');
   const g = { fontsHref: FONTS_HREF, aws, film: Boolean(film) && page.film,
-    page: { path: page.path, url: `${SITE}${page.path}`, og: `${SITE}${page.path}/${page.og}`, noindex: Boolean(page.noindex) } };
+    page: { path: page.path, url: `${SITE}${page.path}`, og: `${SITE}${page.path}/${page.og}` },
+    // Where a reader who asks the banks page for its old AWS door is sent.
+    awsPage: { path: awsPage.path, file: awsPage.file } };
   try {
     g.href = {
       book: L.booking || mailto(L.email, plain(C.hero.bank.book)),
@@ -395,7 +400,7 @@ function makeGen(lang) {
       deck: FILES.deck[lang],
     };
     g.meta = { headline: plain(aws ? C.hero.aws.headline : C.hero.bank.headline), description: plain(aws ? C.hero.aws.subline : C.hero.bank.subline) };
-    const mail = L.email ? `<a href="mailto:${escAttr(L.email)}">${escHtml(L.email)}</a>` : '';
+    const mail = contact ? `<a href="mailto:${escAttr(contact)}">${escHtml(contact)}</a>` : '';
     g.contact = mail;
     g.privacyNote = fill(C.ui.privacyNote, '{email}', mail, lang);
     g.preparedFor = fill(C.ui.preparedFor, '{org}', '<span class="org"></span>', lang);
@@ -461,7 +466,7 @@ function makeGen(lang) {
     }).replace(/</g, '\\u003c');
 
     // The PDF link: without JavaScript it is the English bank file, which is the view shown then.
-    g.pdf = { stem: page.pdf, file: pdfName(page, 'en', page.doors[0]) };
+    g.pdf = { stem: page.pdf, file: pdfName(page, 'en') };
     // The film: where the page finds it and its poster, and its length for the badge on the poster.
     g.video = { file: FILES.film, poster: FILES.poster, duration: film ? film.duration : '' };
     if (cfg.flags.isoMark && !logos['iso-27001']) errors.push(`flags.isoMark is on but ${LOGO_DIR}/iso-27001.svg is missing. Add the certification body's mark (never the ISO logo) or switch the flag off.`);
@@ -588,10 +593,10 @@ async function makePdfs(b) {
     await tab('Page.enable');
     // Reduced motion shows every part at once, with nothing waiting to be scrolled into view.
     await tab('Emulation.setEmulatedMedia', { features: [{ name: 'prefers-reduced-motion', value: 'reduce' }] });
-    for (const lang of LANGS) for (const door of pg.doors) {
-      const name = pdfName(pg, lang, door);
+    for (const lang of LANGS) {
+      const name = pdfName(pg, lang);
       const loaded = c.once('Page.loadEventFired', sessionId);
-      await tab('Page.navigate', { url: `${pathToFileURL(file).href}?lang=${lang}${pg.doors.length > 1 && door === 'aws' ? '&door=aws' : ''}` });
+      await tab('Page.navigate', { url: `${pathToFileURL(file).href}?lang=${lang}` });
       await loaded;
       // The page switches to Geist once all its parts are in (class "fr" on html). Print only after that.
       const fonts = await tab('Runtime.evaluate', { expression: `(async () => {
@@ -616,7 +621,7 @@ async function makePdfs(b) {
       const strays = [...new Set([...text.matchAll(/\/FontName\s*\/([A-Za-z0-9+_-]+)/g)].map((m) => m[1].replace(/^[A-Z]{6}\+/, '')))].filter((f) => !f.startsWith('Geist'));
       if (!text.startsWith('%PDF-') || pages < 2 || pages > 12) errors.push(`${name}: Chrome did not give a usable PDF (${pages} pages).`);
       if (strays.length) errors.push(`${name}: the PDF uses ${strays.join(', ')} besides Geist.`);
-      out.push({ name, lang, door, pages, data: Buffer.from(text, 'latin1') });
+      out.push({ name, lang, pages, data: Buffer.from(text, 'latin1') });
     }
   } catch (e) {
     errors.push(`Chrome could not print the PDFs: ${e.message}`);
@@ -869,8 +874,8 @@ function handover() {
   const dir = (b) => `public${b.pg.path}`;
   const blocking = [];
   if (!cfg.links.email && !cfg.links.booking) blocking.push('config.json has no links.email or links.booking, so the booking buttons have no destination.');
-  else if (!cfg.links.email) blocking.push('config.json has no links.email, so the footer and the privacy note have no contact address.');
-  if (!cfg.links.awsContactEmail && !cfg.links.email) blocking.push('config.json has no links.awsContactEmail, so "Share an opportunity" on the AWS page and the AWS door has no recipient.');
+  else if (!cfg.links.email) blocking.push(`config.json has no links.email, so the footer and the privacy note of ${banks.pg.file} have no contact address.`);
+  if (!cfg.links.awsContactEmail && !cfg.links.email) blocking.push(`config.json has no links.awsContactEmail, so "Share an opportunity" on ${aws.pg.file} has no recipient.`);
   for (const b of built) if (!b.ogReady) blocking.push(`${b.pg.og} is missing, and the link-preview tags of ${b.pg.file} point to it.`);
   const files = [];
   for (const b of built) {
@@ -890,7 +895,7 @@ function handover() {
   if (blocking.length) L.push(`**Not ready to go live.** ${blocking.join(' ')} LV will send a new build.`, '');
   L.push('## Files', '', '| File | Put it at |', '| --- | --- |', ...files.map(([a, b]) => `| ${a} | ${b} |`), '');
   L.push(`There are two pages. ${banks.pg.file} is the page for banks at coderpush.com${banks.pg.path}. ${aws.pg.file} is the page for AWS teams at coderpush.com${aws.pg.path}: the same design, with its own copy and use cases. Each is whole in one file, in both languages, with all CSS and JavaScript inline, its own header and footer and no main-site navigation. There is no build step, no environment variable and no server code. Each new build from LV replaces both index.html files; please do not edit them by hand.`, '');
-  if (aws.pg.noindex) L.push(`${aws.pg.file} asks search engines not to list it, since it is shared by link with AWS teams.`, '');
+  L.push(`Search engines may list both pages. Please add ${banks.pg.path} and ${aws.pg.path} to the site's sitemap.`, '');
   if (f.videoReady) {
     L.push(`${FILES.film} is the overview film: one self-contained file of ${mb(filmOut.bytes)}, about ${mb(filmOut.sent)} as sent compressed. The banks page fetches it only when a visitor presses play, then shows it in a frame inside the page. The AWS page has no film. Each new build replaces the film together with index.html.`, '');
     L.push(`The site must allow its own pages to be shown in a frame on the same site. Today it sends no X-Frame-Options header and no frame-ancestors rule, so nothing needs changing. If one is added later, keep the same origin allowed for ${banks.pg.path}/${FILES.film}.`, '');
@@ -900,8 +905,10 @@ function handover() {
   L.push('## Routing', '', `coderpush.com is a Next.js site on Vercel with trailing slashes, so each page must answer with and without the slash. Merge this into next.config.js:`, '');
   L.push('```js', 'async rewrites() {', '  return [');
   for (const b of built) L.push(`    { source: '${b.pg.path}', destination: '${b.pg.path}/index.html' },`, `    { source: '${b.pg.path}/', destination: '${b.pg.path}/index.html' },`);
-  L.push('  ];', '},', 'async redirects() {', '  return [', '    // Temporary until launch week, then set permanent: true.', `    { source: '/pitchdeck', destination: '${banks.pg.path}', permanent: false },`, '  ];', '},', '```', '');
-  L.push(`${aws.pg.path} used to be a redirect to ${banks.pg.path}?door=aws. Remove that redirect: ${aws.pg.path} now has its own page.`, '');
+  L.push('  ];', '},', 'async redirects() {', '  return [', '    // Temporary until launch week, then set permanent: true.', `    { source: '/pitchdeck', destination: '${banks.pg.path}', permanent: false },`,
+    '    // The AWS door of the banks page is now the AWS page.',
+    `    { source: '${banks.pg.path}', has: [{ type: 'query', key: 'door', value: 'aws' }], destination: '${aws.pg.path}', permanent: false },`, '  ];', '},', '```', '');
+  L.push(`${aws.pg.path} used to be a redirect to ${banks.pg.path}?door=aws. Remove that redirect: ${aws.pg.path} now has its own page, and the banks page no longer has an AWS door. The redirect above sends old links the other way. Without it the banks page still does the same from the browser.`, '');
   L.push('## Analytics', '');
   L.push('1. Turn on Vercel Web Analytics for the project if it is not on.');
   L.push(`2. Paste its script tag from the Vercel dashboard just before \`</head>\` in ${built.map((b) => `${dir(b)}/index.html`).join(' and ')}. Paste it again whenever a new build replaces the files.`);
@@ -909,14 +916,14 @@ function handover() {
   L.push('| Event | When | Properties |', '| --- | --- | --- |');
   L.push('| page_open | After the page has been visible for five seconds | for and door, or door and lang |');
   L.push('| locale_switch | The EN or VI switch in the header | lang |');
-  L.push('| section_view | A section reaches the middle of the screen, once per door | section, door |');
+  L.push('| section_view | A section reaches the middle of the screen, once | section, door |');
   L.push('| deploy_select | An option in the diagram\'s deployment selector | option |');
   L.push('| faq_open | An FAQ answer opens | question |');
   L.push(`| cta_click | A booking, share${f.videoReady ? ', film' : ''}${f.profilePdf ? ', PDF' : ''} or download button, or an email link | cta, and for or door |`, '');
-  L.push('On the AWS page the door property is always aws. Without the script tag the pages send nothing, and they never set cookies, so they also work opened from disk.', '');
+  L.push('The door property is bank on the banks page and aws on the AWS page. Without the script tag the pages send nothing, and they never set cookies, so they also work opened from disk.', '');
   L.push('## Addresses to test', '');
   L.push(`- \`${banks.pg.path}?lang=vi\` and \`${banks.pg.path}?lang=en\` pick the language, and the same on \`${aws.pg.path}\`. Without \`lang\`, a browser set to Vietnamese gets Vietnamese.`);
-  L.push(`- \`${banks.pg.path}?door=aws\` opens the older AWS door inside the banks page.`);
+  L.push(`- \`${banks.pg.path}?door=aws\` goes to \`${aws.pg.path}\`, keeping the language.`);
   L.push(`- \`${banks.pg.path}?for=Example+Bank&uc=contact-centre,governed-analytics\` shows a greeting for Example Bank and puts those two use cases first.`);
   L.push(`- \`#deploy=region\` and \`#deploy=localzone\` set the diagram on both pages, and \`#deploy=onprem\` on the banks page.`, '');
   L.push('## Before announcing', '');
