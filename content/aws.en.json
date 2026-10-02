@@ -1,0 +1,156 @@
+{
+  "meta": {
+    "title": "Production AI for Vietnamese banks, on AWS | CoderPush"
+  },
+  "hero": {
+    "aws": {
+      "subline": "CoderPush turns bank AI pilots into production workloads on AWS, in Vietnamese, with the data kept in Vietnam."
+    },
+    "proofStrip": {
+      "1": {
+        "text": "Presight PoC at {c:mbbank}"
+      }
+    }
+  },
+  "pattern": {
+    "options": [
+      {
+        "key": "region"
+      },
+      {
+        "key": "localzone"
+      }
+    ],
+    "diagram": {
+      "store": "Insight store · PII masked · Hanoi Local Zone",
+      "stateOnprem": null
+    }
+  },
+  "useCases": {
+    "headline": "Nine use cases, each built to run on AWS.",
+    "lead": "One pattern every time: the bank's data stays in Vietnam, the intelligence runs on AWS, and people work with the result in Amazon Quick or the bank's own apps.",
+    "labels": {
+      "aws": "On AWS",
+      "kpi": "KPI",
+      "proof": "Proof"
+    },
+    "items": [
+      {
+        "key": "contact-centre",
+        "title": "Contact-centre intelligence in Quick",
+        "does": "Every recorded call is transcribed in Vietnamese on AWS and tagged for intent, complaints, compliance risk and sales signals. Managers work with the result in Quick desktop, as dashboards and chat.",
+        "aws": "Speech to text in the Hanoi Local Zone; tagging agents on Amazon Bedrock, on de-identified transcripts; Amazon Quick as the front end"
+      },
+      {
+        "key": "sales-call-compliance",
+        "title": "Sales-call compliance for insurance and investment products",
+        "does": "Every recorded sales conversation is checked against the required disclosures and the approved script. Compliance reviews the exceptions in Quick, not a sample of calls.",
+        "aws": "Speech to text in the Hanoi Local Zone; checking agents on Amazon Bedrock; exceptions in Amazon Quick",
+        "kpi": "Share of sales calls checked; issues found before a complaint"
+      },
+      {
+        "key": "rm-assistant",
+        "from": "rm-copilot",
+        "title": "RM assistant and next-best action",
+        "aws": "Customer data platform on AWS; briefs written on Amazon Bedrock; delivered inside the bank's CRM"
+      },
+      {
+        "key": "credit-memo",
+        "aws": "Statements in Amazon S3; reading, checks and drafting on Amazon Bedrock"
+      },
+      {
+        "key": "knowledge-assistant",
+        "title": "Policy and product answers for branch staff",
+        "does": "Staff ask in Vietnamese about products, policies and procedures. Every answer cites its source page and comes only from documents the bank has approved.",
+        "aws": "Documents in Amazon S3; Amazon Bedrock Knowledge Bases; chat in Amazon Quick",
+        "kpi": "Time to answer a policy question; calls to the internal help desk"
+      },
+      {
+        "key": "governed-analytics",
+        "aws": "Certified metrics over the bank's data platform; questions answered on Amazon Bedrock; Amazon Quick as the front end",
+        "proof": "Presight PoC at {c:mbbank}"
+      },
+      {
+        "key": "investment-assistant",
+        "aws": "Runs in the firm's own AWS account. T'FOX was {c:tps}'s first workload on AWS"
+      },
+      {
+        "key": "ai-law-evidence",
+        "title": "AI system inventory and evidence pack for the AI Law",
+        "does": "Every AI system the bank runs is listed with its risk class, logs, human override and kill switch, and the evidence stays current between audits.",
+        "aws": "Logs from AWS CloudTrail and Amazon CloudWatch; Amazon Bedrock Guardrails; the inventory in Amazon Quick",
+        "kpi": "AI systems inventoried and classified; time to answer a regulator's request",
+        "proof": "Every system we ship carries its evidence pack"
+      },
+      {
+        "key": "ai-native-engineering",
+        "title": "AI-native engineering for bank IT, with Kiro",
+        "does": "The bank's engineers build from specifications with AI agents, and a named engineer reviews every change. We work alongside the team, then hand the method over.",
+        "aws": "Kiro for specification-driven development, in the bank's own repositories",
+        "kpi": "Lead time from specification to release",
+        "proof": "{C:tpbank}: the bank's own team now runs the method without us"
+      }
+    ]
+  },
+  "aws": {
+    "when": {
+      "items": {
+        "2": "Data must stay in Vietnam."
+      }
+    },
+    "engage": {
+      "questions": {
+        "1": "Where must the data live: an AWS Region or Vietnam only?"
+      }
+    }
+  },
+  "proof": {
+    "cards": [
+      {
+        "key": "tfox"
+      },
+      {
+        "key": "cdp"
+      },
+      {
+        "key": "agent-dev"
+      },
+      {
+        "key": "presight",
+        "title": "Presight, governed AI analytics",
+        "body": "Natural-language answers on governed metrics. Built by our Head of AI Applications, delivered exclusively by CoderPush in Vietnam."
+      },
+      {
+        "key": "ordering"
+      },
+      {
+        "key": "deepfake"
+      }
+    ]
+  },
+  "faq": {
+    "headline": "What the bank will ask, and how we answer.",
+    "items": [
+      {
+        "key": "data-location",
+        "a": "Where you decide: an AWS Region or the Hanoi Local Zone. Personal data is de-identified before anything leaves your perimeter."
+      },
+      {
+        "key": "ownership"
+      },
+      {
+        "key": "contract"
+      },
+      {
+        "key": "aws-funding"
+      },
+      {
+        "key": "time-to-live"
+      },
+      {
+        "key": "security-review",
+        "a": "We are ISO/IEC 27001 certified. We work inside your AWS accounts, under your access policies, with every action logged, and our due-diligence pack includes the certificate and its scope."
+      }
+    ]
+  }
+}

@@ -36,4 +36,18 @@ for (const lang of ['en', 'vi']) {
   walk(c, '');
 }
 console.log(`${n} strings checked, ${bad} not found word for word`);
+// The AWS page has copy of its own, written for it and not in the copy documents: count it, so a reader
+// knows how much wording to review there.
+for (const lang of ['en', 'vi']) {
+  const f = `content/aws.${lang}.json`;
+  if (!fs.existsSync(at(f))) continue;
+  let own = 0;
+  const count = (v, key) => {
+    if (Array.isArray(v)) return v.forEach((x) => count(x, key));
+    if (v && typeof v === 'object') return Object.entries(v).forEach(([k, x]) => count(x, k));
+    if (typeof v === 'string' && v && !['key', 'from'].includes(key)) own++;
+  };
+  count(JSON.parse(read(f)), '');
+  console.log(`${f}: ${own} strings written or changed for the AWS page, not in the copy documents`);
+}
 process.exit(bad ? 1 : 0);

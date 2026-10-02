@@ -1,13 +1,15 @@
 # cp_intro_to_banks
 
-The CoderPush page for banks, built as one self-contained HTML file for coderpush.com/banks.
-English and Vietnamese, a bank door and an AWS door, all CSS and JavaScript inline, under 150 KB.
+Two CoderPush pages, each built as one self-contained HTML file: the page for banks at
+coderpush.com/banks and the page for AWS teams at coderpush.com/aws. English and Vietnamese, all CSS
+and JavaScript inline, each under 150 KB. Both come from the same template and the same copy.
 
 ## What is here
 
 | Path | What it is |
 | --- | --- |
-| content/en.json, content/vi.json | All copy, word for word from the copy documents |
+| content/en.json, content/vi.json | The shared copy, word for word from the copy documents |
+| content/aws.en.json, content/aws.vi.json | What the AWS page says differently: its edits and its own use cases |
 | config.json | The switches: which clients are named, who is shown, which parts are on, the links |
 | template.html | The page: markup, styles and script, with placeholders for the copy |
 | build.mjs | The build. Plain Node, no dependencies |
@@ -23,11 +25,12 @@ It writes into dist/:
 
 | File | What it is |
 | --- | --- |
-| banks.html | The whole page |
+| banks.html | The page for banks, with its bank door and its older AWS door |
+| aws.html | The page for AWS teams |
 | HANDOVER.md | The note for the web team: where the files go, routing, analytics, what to test |
-| og-banks.png | The link-preview image, when a local Chrome or Playwright is available |
+| og-banks.png, og-aws.png | The link-preview images, when a local Chrome or Playwright is available |
 | banks-film.html, banks-film-poster.webp | The overview film and its poster, while flags.videoReady is on |
-| coderpush-banks-profile-*.pdf | The page as a PDF for A4 paper, one per language and door, while flags.profilePdf is on |
+| coderpush-banks-profile-*.pdf, coderpush-aws-profile-*.pdf | Each page as a PDF for A4 paper, one per language and view, while flags.profilePdf is on |
 
 The PDFs are printed from the finished page with a local Chrome, so a build with flags.profilePdf on
 needs Chrome and a network connection for the font. How they look is decided by the print styles in
@@ -41,6 +44,23 @@ output, a client's name while that client's switch is off, a hidden person's nam
 does not match between the two languages, or a page of 150 KB or more.
 
 Every change is an edit to the sources and a new build. dist/ is never edited by hand.
+
+## The AWS page
+
+aws.html is the banks page retold for AWS account managers and solutions architects. The list of pages
+is `PAGES` at the top of build.mjs. For the AWS page the build merges content/aws.<lang>.json over the
+shared copy:
+
+- An object merges key by key, and `null` removes a key.
+- A list of items with a `key` replaces the shared list. Each item starts from the shared item with the
+  same key, or the key named in `from`, so it only states what differs. Items not listed are dropped.
+- An object given where the shared copy has a list changes the items at those positions.
+
+So a change to the shared copy reaches the AWS page too, unless the AWS page overrides that string.
+
+The page has no film, asks search engines not to list it, and has two places for the data to live:
+an AWS Region and the Hanoi Local Zone. The build stops if its output contains on-prem wording, the
+word Copilot, or a data centre of the bank's own, in either language. The patterns are in `PAGES`.
 
 ## Switches
 
@@ -75,10 +95,11 @@ file, not hidden in it.
     node build.mjs && node checks/run.mjs
 
 Needs Node 22 or newer and a local Chrome. It serves dist/ locally, opens it in headless Chrome
-and prints one PASS or FAIL line per check: the four views from disk and from a server, personal
-links, a company name containing HTML, the switches, 360 px width, keyboard use, reduced motion,
-fonts, analytics events, no cookies, no JavaScript, logos, team, the PDF buttons, the print layout,
-the PDF files and the film player.
+and prints one PASS or FAIL line per check: the views of both pages from disk and from a server,
+personal links, a company name containing HTML, the switches, 360 px width, keyboard use, reduced
+motion, fonts, analytics events, no cookies, no JavaScript, logos, team, the PDF buttons, the print
+layout, the PDF files, the film player, and on the AWS page its use cases and the wording it must
+not contain.
 
 The checks describe the page as config.json has it today. The wording check compares the content
 files with the copy documents, which are not in this repository, and is skipped without them.
@@ -87,4 +108,5 @@ To look at the page as the site would serve it:
 
     node checks/serve.mjs
 
-then open http://127.0.0.1:8765/banks/. Opening dist/banks.html from disk works too.
+then open http://127.0.0.1:8765/banks/ or http://127.0.0.1:8765/aws/. Opening the files in dist/
+from disk works too.

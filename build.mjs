@@ -1,7 +1,8 @@
 #!/usr/bin/env node
-// Builds dist/banks.html and dist/HANDOVER.md from config.json, content/en.json,
-// content/vi.json and template.html. Plain Node 18 or later, no dependencies.
-// It also renders dist/og-banks.png when Playwright or a local Chrome is available,
+// Builds the pages in dist/ (banks.html for coderpush.com/banks and aws.html for coderpush.com/aws)
+// and dist/HANDOVER.md from config.json, the copy in content/ and template.html.
+// Plain Node 18 or later, no dependencies.
+// It also renders the link-preview images when Playwright or a local Chrome is available,
 // with flags.videoReady on it writes the film (dist/banks-film.html) and its poster, and
 // with flags.profilePdf on it prints the page to PDF with a local Chrome, once per language and door.
 //
@@ -41,12 +42,18 @@ const FILES = {
 };
 // The page itself as a PDF, one per language and door, printed by the build (see makePdfs). The page's
 // script builds the same names from the stem, so the link follows the language and door in view.
-const PDF_STEM = 'coderpush-banks-profile-';
-const DOORS = ['bank', 'aws'];
-const pdfName = (lang, door) => `${PDF_STEM}${door === 'aws' ? 'aws-' : ''}${lang}.pdf`;
+// The pages. All come from template.html. A page with "overrides" gets content/<overrides>.<lang>.json
+// merged over the shared copy, and the build stops if its output matches one of its "banned" patterns.
+const PAGES = [
+  { key: 'banks', file: 'banks.html', path: '/banks', og: 'og-banks.png', pdf: 'coderpush-banks-profile-', doors: ['bank', 'aws'], film: true },
+  { key: 'aws', file: 'aws.html', path: '/aws', og: 'og-aws.png', pdf: 'coderpush-aws-profile-', doors: ['aws'], film: false, overrides: 'aws', noindex: true,
+    banned: [['on-prem wording', /on[\s-]?prem/i], ['the word Copilot', /copilot/i], ['a data centre of the bank\'s own', /data cent(?:re|er)|trung tâm dữ liệu/i]] },
+];
+// Each page as a PDF, one per language and door, printed by the build (see makePdfs). The page's script
+// builds the same names from the stem, so the link follows the language and door in view.
+const pdfName = (pg, lang, door) => `${pg.pdf}${pg.doors.length > 1 && door === 'aws' ? 'aws-' : ''}${lang}.pdf`;
 // Chrome's print scale. At 0.75 an A4 sheet lays out like a screen about 1060 px wide, and body text prints near 9.5 pt.
 const PDF_SCALE = 0.75;
-const PDF_CREATOR = 'coderpush.com/banks';
 // Logo files are embedded when they exist in assets/logos, named <key>.svg (or .png, .webp, .jpg).
 // Client logos appear only while that client's switch is on. The ISO slot takes the certification
 // body's mark, never the ISO logo, and only while flags.isoMark is on.
@@ -57,7 +64,8 @@ const CRED_KEYS = ['aws-advanced-tier', 'aws-ai-competency', 'iso-27001'];
 // Icons from the sprite in template.html, by position or key.
 const ICONS = {
   creds: ['cloud', 'spark', 'shield'],
-  useCases: { 'contact-centre': 'headset', 'rm-copilot': 'brief', 'credit-memo': 'doc', 'governed-analytics': 'bars', 'investment-assistant': 'trend', 'ekyc-deepfake': 'scan' },
+  useCases: { 'contact-centre': 'headset', 'rm-copilot': 'brief', 'credit-memo': 'doc', 'governed-analytics': 'bars', 'investment-assistant': 'trend', 'ekyc-deepfake': 'scan',
+    'rm-assistant': 'brief', 'sales-call-compliance': 'scale', 'knowledge-assistant': 'folder', 'ai-law-evidence': 'shield', 'ai-native-engineering': 'code' },
   steps: ['doc', 'flask', 'usercheck', 'shield'],
   phases: ['zap', 'wrench', 'rocket'],
   waysIn: ['headset', 'bars', 'scale', 'code'],
@@ -81,62 +89,59 @@ const sources = [args.config, 'template.html', 'build.mjs', ...(fs.existsSync(pa
   ...fs.readdirSync(path.join(ROOT, 'content')).filter((f) => f.endsWith('.json')).map((f) => `content/${f}`)];
 for (const f of sources) scanDashes(read(f), f);
 const cfg = readJson(args.config);
-const content = { en: readJson('content/en.json'), vi: readJson('content/vi.json') };
+const base = { en: readJson('content/en.json'), vi: readJson('content/vi.json') };
 const template = read('template.html');
 if (errors.length) stop(errors);
+// The page being built: its entry in PAGES, its copy, and the values worked out from that copy.
+let page = PAGES[0];
+let content = base;
+let gens = {};
 
 // 2. Validate the config and check that both languages have the same shape.
 validateConfig();
-parity(withoutMeta(content.en), content.vi, '');
+parity(withoutMeta(base.en), base.vi, '');
 if (errors.length) stop(errors);
 
-// 3. Work out everything the template needs, per language.
+// 3. Shared by every page: the logos and the film.
 const logos = loadLogos();
 const film = cfg.flags.videoReady ? readFilm() : null;
-const gens = {};
-for (const l of LANGS) gens[l] = makeGen(l);
+
+// 4. Render, minify and check each page.
+const built = PAGES.map(buildPage);
 if (errors.length) stop(errors);
 // The film's own button reads "Book a 30-minute intro", so it gets the link of the page's button with that label.
-const filmOut = film ? embedFilm(film, gens.en.href.intro) : null;
-
-// 4. Render, minify and check the page.
-let html;
-try {
-  html = minify(run(compile(template).kids, { lang: null, vars: {}, index: 0 }));
-} catch (e) {
-  stop([e.message]);
-}
-checkOutput('dist/banks.html', html);
-const bytes = Buffer.byteLength(html);
-if (bytes >= MAX_BYTES) errors.push(`dist/banks.html is ${kb(bytes)}; it must stay under ${kb(MAX_BYTES)}`);
-if (errors.length) stop(errors);
-// The PDFs are printed from the finished page before anything is written, so a failure leaves dist/ as it was.
-const pdfs = cfg.flags.profilePdf ? await makePdfs(html) : null;
+const filmOut = film ? embedFilm(film, built[0].gens.en.href.intro) : null;
+// The PDFs are printed from the finished pages before anything is written, so a failure leaves dist/ as it was.
+for (const b of built) b.pdfs = cfg.flags.profilePdf ? await makePdfs(b) : null;
 if (errors.length) stop(errors);
 
-// 5. Write the page, the preview image and the handover note.
+// 5. Write the pages, the preview images and the handover note.
 const outDir = path.resolve(ROOT, args.out);
 fs.mkdirSync(outDir, { recursive: true });
-const hash = crypto.createHash('sha256').update(html).digest('hex');
-const ogFile = path.join(outDir, 'og-banks.png');
-let ogBy = null;
-if (args.og) {
-  ogBy = await renderOg(ogFile);
-  if (!ogBy) warnings.push('og-banks.png was not rendered: neither Playwright nor a local Chrome was found.');
+for (const b of built) {
+  const ogFile = path.join(outDir, b.pg.og);
+  if (args.og) {
+    use(b);
+    b.ogBy = await renderOg(ogFile);
+    if (!b.ogBy) warnings.push(`${b.pg.og} was not rendered: neither Playwright nor a local Chrome was found.`);
+  }
+  b.ogReady = fs.existsSync(ogFile);
 }
-const ogReady = fs.existsSync(ogFile);
-const note = handover({ bytes, hash, ogReady });
+use(built[0]);
+const note = handover();
 checkOutput('dist/HANDOVER.md', note);
 if (errors.length) stop(errors);
-fs.writeFileSync(path.join(outDir, 'banks.html'), html);
-fs.writeFileSync(path.join(outDir, 'HANDOVER.md'), note);
-// The PDFs sit next to the page. A build without them clears them from the out folder.
-for (const l of LANGS) for (const d of DOORS) {
-  const f = path.join(outDir, pdfName(l, d));
-  const made = pdfs && pdfs.find((x) => x.name === pdfName(l, d));
-  if (made) fs.writeFileSync(f, made.data);
-  else if (fs.existsSync(f)) fs.rmSync(f);
+for (const b of built) {
+  fs.writeFileSync(path.join(outDir, b.pg.file), b.html);
+  // The PDFs sit next to their page. A build without them clears them from the out folder.
+  for (const l of LANGS) for (const d of b.pg.doors) {
+    const name = pdfName(b.pg, l, d);
+    const made = b.pdfs && b.pdfs.find((x) => x.name === name);
+    if (made) fs.writeFileSync(path.join(outDir, name), made.data);
+    else if (fs.existsSync(path.join(outDir, name))) fs.rmSync(path.join(outDir, name));
+  }
 }
+fs.writeFileSync(path.join(outDir, 'HANDOVER.md'), note);
 // The film and its poster sit next to the page. A build without the film clears them from the out folder.
 if (filmOut) {
   fs.writeFileSync(path.join(outDir, FILES.film), filmOut.text);
@@ -147,6 +152,78 @@ if (filmOut) {
 report();
 
 // ---------------------------------------------------------------------------
+
+// One page: its copy (the shared copy with the page's overrides merged in), its values, and the finished HTML.
+function buildPage(pg) {
+  page = pg;
+  content = base;
+  if (pg.overrides) {
+    const files = LANGS.map((l) => `content/${pg.overrides}.${l}.json`);
+    content = Object.fromEntries(LANGS.map((l, i) => [l, merge(base[l], readJson(files[i]), files[i])]));
+    parity(withoutMeta(content.en), content.vi, '', files);
+  }
+  gens = {};
+  const b = { pg, content, gens, html: '', bytes: 0, hash: '' };
+  if (errors.length) return b;
+  for (const l of LANGS) gens[l] = makeGen(l);
+  if (errors.length) return b;
+  try {
+    b.html = minify(run(compile(template).kids, { lang: null, vars: {}, index: 0 }));
+  } catch (e) {
+    errors.push(`${pg.file}: ${e.message}`);
+    return b;
+  }
+  const label = `dist/${pg.file}`;
+  checkOutput(label, b.html);
+  const plain = b.html.replace(/data:image\/[a-z+.-]+;base64,[A-Za-z0-9+/=]+/g, 'data:image');
+  for (const [what, re] of pg.banned || []) {
+    const m = plain.match(re);
+    if (m) errors.push(`${label}: ${what} must not appear on this page, but it does: ...${plain.slice(Math.max(0, m.index - 60), m.index + 60).replace(/\s+/g, ' ')}...`);
+  }
+  b.bytes = Buffer.byteLength(b.html);
+  if (b.bytes >= MAX_BYTES) errors.push(`${label} is ${kb(b.bytes)}; it must stay under ${kb(MAX_BYTES)}`);
+  b.hash = crypto.createHash('sha256').update(b.html).digest('hex');
+  return b;
+}
+
+// Makes a built page the current one again, for the steps that read its copy and values.
+function use(b) {
+  page = b.pg;
+  content = b.content;
+  gens = b.gens;
+}
+
+// Overrides. An object merges key by key, and null removes a key. A list of keyed items replaces the shared
+// list: each item starts from the shared item with the same key, or the key named in "from", and items not
+// listed are dropped. An object given where the shared copy has a list changes the items at those positions.
+function merge(a, b, where) {
+  if (Array.isArray(a) && b && typeof b === 'object' && !Array.isArray(b)) {
+    const out = a.slice();
+    for (const [i, v] of Object.entries(b)) {
+      if (!/^\d+$/.test(i) || +i >= out.length) { errors.push(`${where}: the shared list has no item ${i} to change`); continue; }
+      out[+i] = merge(out[+i], v, where);
+    }
+    return out;
+  }
+  if (Array.isArray(b)) {
+    if (!Array.isArray(a) || !b.every((x) => x && typeof x === 'object' && typeof x.key === 'string')) return b;
+    return b.map((x) => {
+      const { from, ...rest } = x;
+      const src = a.find((y) => y && y.key === (from || x.key));
+      if (from && !src) errors.push(`${where}: "${x.key}" starts from "${from}", which the shared copy does not have`);
+      return src ? merge(src, rest, where) : rest;
+    });
+  }
+  if (a && b && typeof a === 'object' && typeof b === 'object' && !Array.isArray(a)) {
+    const out = { ...a };
+    for (const [k, v] of Object.entries(b)) {
+      if (v === null) delete out[k];
+      else out[k] = k in a ? merge(a[k], v, where) : v;
+    }
+    return out;
+  }
+  return b;
+}
 
 function parseArgs(argv) {
   const a = { config: 'config.json', out: 'dist', today: null, og: true };
@@ -228,19 +305,20 @@ function validateConfig() {
   if (!cfg.links.awsContactEmail && !cfg.links.email) warnings.push('links.awsContactEmail is empty: the AWS door\'s "Share an opportunity" opens an email with no recipient.');
 }
 
-function parity(a, b, p) {
+function parity(a, b, p, files = ['content/en.json', 'content/vi.json']) {
+  const [fileEn, fileVi] = files;
   const where = p || 'the top level';
   if (Array.isArray(a)) {
-    if (!Array.isArray(b)) { errors.push(`content/vi.json: ${where} should be a list`); return; }
-    if (a.length !== b.length) errors.push(`${where}: content/en.json has ${a.length} items, content/vi.json has ${b.length}`);
-    a.forEach((x, i) => { if (i < b.length) parity(x, b[i], `${p}.${i}`); });
+    if (!Array.isArray(b)) { errors.push(`${fileVi}: ${where} should be a list`); return; }
+    if (a.length !== b.length) errors.push(`${where}: ${fileEn} has ${a.length} items, ${fileVi} has ${b.length}`);
+    a.forEach((x, i) => { if (i < b.length) parity(x, b[i], `${p}.${i}`, files); });
     return;
   }
   if (a && typeof a === 'object') {
-    if (!b || typeof b !== 'object') { errors.push(`content/vi.json: ${where} should be an object`); return; }
-    for (const k of Object.keys(a)) if (!(k in b)) errors.push(`content/vi.json is missing ${p ? `${p}.` : ''}${k}`);
-    for (const k of Object.keys(b)) if (!(k in a)) errors.push(`content/en.json is missing ${p ? `${p}.` : ''}${k}`);
-    for (const k of Object.keys(a)) if (k in b) parity(a[k], b[k], p ? `${p}.${k}` : k);
+    if (!b || typeof b !== 'object') { errors.push(`${fileVi}: ${where} should be an object`); return; }
+    for (const k of Object.keys(a)) if (!(k in b)) errors.push(`${fileVi} is missing ${p ? `${p}.` : ''}${k}`);
+    for (const k of Object.keys(b)) if (!(k in a)) errors.push(`${fileEn} is missing ${p ? `${p}.` : ''}${k}`);
+    for (const k of Object.keys(a)) if (k in b) parity(a[k], b[k], p ? `${p}.${k}` : k, files);
     return;
   }
   if (typeof a !== typeof b) { errors.push(`${where}: the value type differs between en and vi`); return; }
@@ -303,7 +381,10 @@ function makeGen(lang) {
   const plain = (s) => text(s, lang, false);
   const mailto = (to, subject) => `mailto:${to}?subject=${encodeURIComponent(subject)}`;
   const awsTo = L.awsContactEmail || L.email;
-  const g = { fontsHref: FONTS_HREF };
+  // A page with the AWS door alone is written for AWS teams; the banks page has both doors.
+  const aws = page.doors.length === 1 && page.doors[0] === 'aws';
+  const g = { fontsHref: FONTS_HREF, aws, film: Boolean(film) && page.film,
+    page: { path: page.path, url: `${SITE}${page.path}`, og: `${SITE}${page.path}/${page.og}`, noindex: Boolean(page.noindex) } };
   try {
     g.href = {
       book: L.booking || mailto(L.email, plain(C.hero.bank.book)),
@@ -313,6 +394,7 @@ function makeGen(lang) {
       brief: FILES.brief[lang],
       deck: FILES.deck[lang],
     };
+    g.meta = { headline: plain(aws ? C.hero.aws.headline : C.hero.bank.headline), description: plain(aws ? C.hero.aws.subline : C.hero.bank.subline) };
     const mail = L.email ? `<a href="mailto:${escAttr(L.email)}">${escHtml(L.email)}</a>` : '';
     g.contact = mail;
     g.privacyNote = fill(C.ui.privacyNote, '{email}', mail, lang);
@@ -333,7 +415,7 @@ function makeGen(lang) {
       quick: split(D.quick, 3), apps: split(D.apps, 2), stt: split(D.stt, 3), tagging: split(D.tagging, 2),
       recordings: split(D.recordings, 2), store: split(D.store, 3), platform: split(D.platform, 2),
       rail: split(D.rail, 2), railItems: split(D.railItems, 6), arrows: split(D.arrows, 4),
-      region: split(D.stateRegion, 2, '; '), onprem: split(D.stateOnprem, 3),
+      region: split(D.stateRegion, 2, '; '), onprem: D.stateOnprem ? split(D.stateOnprem, 3) : null,
     };
     g.waysIn = split(C.offer.waysIn, 4).map((text, i) => ({ text, icon: ICONS.waysIn[i] }));
     g.dg.railItems = g.dg.railItems.map((text, i) => ({ text, icon: ICONS.rail[i] }));
@@ -373,13 +455,13 @@ function makeGen(lang) {
       '@context': 'https://schema.org',
       '@graph': [
         { '@type': 'Organization', '@id': `${SITE}/#organization`, name: 'CoderPush', legalName: plain(C.ui.legalName), url: SITE, ...(L.email ? { email: L.email } : {}) },
-        { '@type': 'FAQPage', '@id': `${SITE}/banks#faq`, url: `${SITE}/banks`, inLanguage: lang,
+        { '@type': 'FAQPage', '@id': `${SITE}${page.path}#faq`, url: `${SITE}${page.path}`, inLanguage: lang,
           mainEntity: C.faq.items.map((q) => ({ '@type': 'Question', name: plain(q.q), acceptedAnswer: { '@type': 'Answer', text: plain(q.a) } })) },
       ],
     }).replace(/</g, '\\u003c');
 
     // The PDF link: without JavaScript it is the English bank file, which is the view shown then.
-    g.pdf = { stem: PDF_STEM, file: pdfName('en', 'bank') };
+    g.pdf = { stem: page.pdf, file: pdfName(page, 'en', page.doors[0]) };
     // The film: where the page finds it and its poster, and its length for the badge on the poster.
     g.video = { file: FILES.film, poster: FILES.poster, duration: film ? film.duration : '' };
     if (cfg.flags.isoMark && !logos['iso-27001']) errors.push(`flags.isoMark is on but ${LOGO_DIR}/iso-27001.svg is missing. Add the certification body's mark (never the ISO logo) or switch the flag off.`);
@@ -485,15 +567,17 @@ function embedFilm(f, href) {
 
 // Prints the finished page with a local Chrome, once per language and door. The page's own print
 // styles (template.html, @media print) decide how it looks; this only opens each view and prints it.
-async function makePdfs(page) {
+async function makePdfs(b) {
+  const pg = b.pg;
+  const creator = `coderpush.com${pg.path}`;
   const chrome = findChrome();
   if (!chrome) {
     errors.push('flags.profilePdf is on but no Chrome was found to print the PDFs. Install Google Chrome, or set CHROME_PATH, or switch the flag off.');
     return null;
   }
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'banks-pdf-'));
-  const file = path.join(tmp, 'banks.html');
-  fs.writeFileSync(file, page);
+  const file = path.join(tmp, pg.file);
+  fs.writeFileSync(file, b.html);
   const stamp = `${today.replace(/-/g, '')}000000`;
   const out = [];
   const c = openChrome(chrome, path.join(tmp, 'profile'));
@@ -504,12 +588,20 @@ async function makePdfs(page) {
     await tab('Page.enable');
     // Reduced motion shows every part at once, with nothing waiting to be scrolled into view.
     await tab('Emulation.setEmulatedMedia', { features: [{ name: 'prefers-reduced-motion', value: 'reduce' }] });
-    for (const lang of LANGS) for (const door of DOORS) {
-      const name = pdfName(lang, door);
+    for (const lang of LANGS) for (const door of pg.doors) {
+      const name = pdfName(pg, lang, door);
       const loaded = c.once('Page.loadEventFired', sessionId);
-      await tab('Page.navigate', { url: `${pathToFileURL(file).href}?lang=${lang}${door === 'aws' ? '&door=aws' : ''}` });
+      await tab('Page.navigate', { url: `${pathToFileURL(file).href}?lang=${lang}${pg.doors.length > 1 && door === 'aws' ? '&door=aws' : ''}` });
       await loaded;
-      const fonts = await tab('Runtime.evaluate', { expression: "document.fonts.ready.then(() => document.fonts.check('400 17px Geist') && document.fonts.check('600 17px Geist'))", awaitPromise: true, returnByValue: true });
+      // The page switches to Geist once all its parts are in (class "fr" on html). Print only after that.
+      const fonts = await tab('Runtime.evaluate', { expression: `(async () => {
+        const t0 = Date.now();
+        while (!document.documentElement.classList.contains('fr') && Date.now() - t0 < 8000) await new Promise((r) => setTimeout(r, 50));
+        await document.fonts.ready;
+        await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+        await document.fonts.ready;
+        return document.fonts.check('400 17px Geist') && document.fonts.check('600 17px Geist');
+      })()`, awaitPromise: true, returnByValue: true });
       if (!fonts.result || fonts.result.value !== true) {
         errors.push(`${name}: the Geist font did not load, so the PDF would print in another font. Is the network reachable?`);
         continue;
@@ -519,7 +611,7 @@ async function makePdfs(page) {
       // address go in their place, at the same length, so the same page gives the same file.
       const text = Buffer.from(printed.data, 'base64').toString('latin1')
         .replace(/\/(CreationDate|ModDate) \(D:\d{14}/g, (m, key) => `/${key} (D:${stamp}`)
-        .replace(/\/Creator \(((?:[^()\\]|\\.)*)\)/, (m, v) => (v.length >= PDF_CREATOR.length ? `/Creator (${PDF_CREATOR.padEnd(v.length)})` : m));
+        .replace(/\/Creator \(((?:[^()\\]|\\.)*)\)/, (m, v) => (v.length >= creator.length ? `/Creator (${creator.padEnd(v.length)})` : m));
       const pages = (text.match(/\/Type\s*\/Page[^s]/g) || []).length;
       const strays = [...new Set([...text.matchAll(/\/FontName\s*\/([A-Za-z0-9+_-]+)/g)].map((m) => m[1].replace(/^[A-Z]{6}\+/, '')))].filter((f) => !f.startsWith('Geist'));
       if (!text.startsWith('%PDF-') || pages < 2 || pages > 12) errors.push(`${name}: Chrome did not give a usable PDF (${pages} pages).`);
@@ -771,39 +863,49 @@ function checkNames(label, out) {
   }
 }
 
-function handover({ bytes, hash, ogReady }) {
+function handover() {
   const f = cfg.flags;
+  const [banks, aws] = built;
+  const dir = (b) => `public${b.pg.path}`;
   const blocking = [];
   if (!cfg.links.email && !cfg.links.booking) blocking.push('config.json has no links.email or links.booking, so the booking buttons have no destination.');
   else if (!cfg.links.email) blocking.push('config.json has no links.email, so the footer and the privacy note have no contact address.');
-  if (!cfg.links.awsContactEmail && !cfg.links.email) blocking.push('config.json has no links.awsContactEmail, so the AWS door has no contact address.');
-  if (!ogReady) blocking.push('og-banks.png is missing, and the link-preview tags point to it.');
-  const files = [['banks.html', 'public/banks/index.html']];
-  if (ogReady) files.push(['og-banks.png', 'public/banks/og-banks.png']);
-  if (f.videoReady) files.push([FILES.film, `public/banks/${FILES.film}`], [FILES.poster, `public/banks/${FILES.poster}`]);
-  if (pdfs) for (const x of pdfs) files.push([x.name, `public/banks/${x.name}`]);
+  if (!cfg.links.awsContactEmail && !cfg.links.email) blocking.push('config.json has no links.awsContactEmail, so "Share an opportunity" on the AWS page and the AWS door has no recipient.');
+  for (const b of built) if (!b.ogReady) blocking.push(`${b.pg.og} is missing, and the link-preview tags of ${b.pg.file} point to it.`);
+  const files = [];
+  for (const b of built) {
+    files.push([b.pg.file, `${dir(b)}/index.html`]);
+    if (b.ogReady) files.push([b.pg.og, `${dir(b)}/${b.pg.og}`]);
+    if (b.gens.en.film) files.push([FILES.film, `${dir(b)}/${FILES.film}`], [FILES.poster, `${dir(b)}/${FILES.poster}`]);
+    if (b.pdfs) for (const x of b.pdfs) files.push([x.name, `${dir(b)}/${x.name}`]);
+  }
   if (f.downloads) {
     for (const l of LANGS) files.push([`the one-page brief (${l.toUpperCase()}), from LV`, `public${FILES.brief[l]}`]);
     for (const l of LANGS) files.push([`the PDF deck (${l.toUpperCase()}), from LV`, `public${FILES.deck[l]}`]);
   }
+  const pdfCount = built.reduce((n, b) => n + (b.pdfs ? b.pdfs.length : 0), 0);
   const L = [];
-  L.push('# /banks: handover for the web team', '');
-  L.push(`Build of ${today}: banks.html is ${kb(bytes)}, sha256 ${hash.slice(0, 12)}.`, '');
+  L.push('# /banks and /aws: handover for the web team', '');
+  L.push(`Build of ${today}: ${built.map((b) => `${b.pg.file} is ${kb(b.bytes)}, sha256 ${b.hash.slice(0, 12)}`).join('; ')}.`, '');
   if (blocking.length) L.push(`**Not ready to go live.** ${blocking.join(' ')} LV will send a new build.`, '');
   L.push('## Files', '', '| File | Put it at |', '| --- | --- |', ...files.map(([a, b]) => `| ${a} | ${b} |`), '');
-  L.push('banks.html is the whole page: both doors, both languages, and all CSS and JavaScript inline. It has its own header and footer and no main-site navigation. There is no build step, no environment variable and no server code. Each new build from LV replaces index.html; please do not edit the file by hand.', '');
+  L.push(`There are two pages. ${banks.pg.file} is the page for banks at coderpush.com${banks.pg.path}. ${aws.pg.file} is the page for AWS teams at coderpush.com${aws.pg.path}: the same design, with its own copy and use cases. Each is whole in one file, in both languages, with all CSS and JavaScript inline, its own header and footer and no main-site navigation. There is no build step, no environment variable and no server code. Each new build from LV replaces both index.html files; please do not edit them by hand.`, '');
+  if (aws.pg.noindex) L.push(`${aws.pg.file} asks search engines not to list it, since it is shared by link with AWS teams.`, '');
   if (f.videoReady) {
-    L.push(`${FILES.film} is the overview film: one self-contained file of ${mb(filmOut.bytes)}, about ${mb(filmOut.sent)} as sent compressed. The page fetches it only when a visitor presses play, then shows it in a frame inside the page. Each new build replaces it together with index.html.`, '');
-    L.push(`The film and its poster are addressed relative to the page. That works at /banks/ with the trailing slash, which is how the site serves pages. If the page is ever served at /banks without the slash, it switches to /banks/ addresses by itself.`, '');
-    L.push(`The site must allow its own pages to be shown in a frame on the same site. Today it sends no X-Frame-Options header and no frame-ancestors rule, so nothing needs changing. If one is added later, keep the same origin allowed for /banks/${FILES.film}.`, '');
+    L.push(`${FILES.film} is the overview film: one self-contained file of ${mb(filmOut.bytes)}, about ${mb(filmOut.sent)} as sent compressed. The banks page fetches it only when a visitor presses play, then shows it in a frame inside the page. The AWS page has no film. Each new build replaces the film together with index.html.`, '');
+    L.push(`The site must allow its own pages to be shown in a frame on the same site. Today it sends no X-Frame-Options header and no frame-ancestors rule, so nothing needs changing. If one is added later, keep the same origin allowed for ${banks.pg.path}/${FILES.film}.`, '');
   }
-  if (pdfs) L.push(`The ${pdfs.length} PDF files are the page itself, printed for A4 paper: one per language, for the bank door and for the AWS door. The Download PDF button in the header and at the end of the page fetches the one for the language and door in view. They are addressed relative to the page, like the film, and each new build replaces them.`, '');
-  L.push('## Routing', '', 'coderpush.com is a Next.js site on Vercel with trailing slashes, so the page must answer at both /banks and /banks/. Merge this into next.config.js:', '');
-  L.push('```js', 'async rewrites() {', '  return [', "    { source: '/banks', destination: '/banks/index.html' },", "    { source: '/banks/', destination: '/banks/index.html' },", '  ];', '},', 'async redirects() {', '  return [', '    // Temporary until launch week, then set permanent: true.', "    { source: '/aws', destination: '/banks?door=aws', permanent: false },", "    { source: '/pitchdeck', destination: '/banks', permanent: false },", '  ];', '},', '```', '');
+  if (pdfCount) L.push(`The ${pdfCount} PDF files are the pages themselves, printed for A4 paper, one per language and view. The Download PDF button in the header and at the end of each page fetches the one for the language in view. Each new build replaces them.`, '');
+  L.push(`Files next to a page are addressed relative to it. That works at ${banks.pg.path}/ and ${aws.pg.path}/ with the trailing slash, which is how the site serves pages. If a page is ever served without the slash, it switches to addresses with the slash by itself.`, '');
+  L.push('## Routing', '', `coderpush.com is a Next.js site on Vercel with trailing slashes, so each page must answer with and without the slash. Merge this into next.config.js:`, '');
+  L.push('```js', 'async rewrites() {', '  return [');
+  for (const b of built) L.push(`    { source: '${b.pg.path}', destination: '${b.pg.path}/index.html' },`, `    { source: '${b.pg.path}/', destination: '${b.pg.path}/index.html' },`);
+  L.push('  ];', '},', 'async redirects() {', '  return [', '    // Temporary until launch week, then set permanent: true.', `    { source: '/pitchdeck', destination: '${banks.pg.path}', permanent: false },`, '  ];', '},', '```', '');
+  L.push(`${aws.pg.path} used to be a redirect to ${banks.pg.path}?door=aws. Remove that redirect: ${aws.pg.path} now has its own page.`, '');
   L.push('## Analytics', '');
   L.push('1. Turn on Vercel Web Analytics for the project if it is not on.');
-  L.push('2. Paste its script tag from the Vercel dashboard just before `</head>` in public/banks/index.html. Paste it again whenever a new build replaces the file.');
-  L.push('3. Custom events need the Pro plan. The page sends these, each with at most two properties:', '');
+  L.push(`2. Paste its script tag from the Vercel dashboard just before \`</head>\` in ${built.map((b) => `${dir(b)}/index.html`).join(' and ')}. Paste it again whenever a new build replaces the files.`);
+  L.push('3. Custom events need the Pro plan. The pages send these, each with at most two properties:', '');
   L.push('| Event | When | Properties |', '| --- | --- | --- |');
   L.push('| page_open | After the page has been visible for five seconds | for and door, or door and lang |');
   L.push('| locale_switch | The EN or VI switch in the header | lang |');
@@ -811,25 +913,25 @@ function handover({ bytes, hash, ogReady }) {
   L.push('| deploy_select | An option in the diagram\'s deployment selector | option |');
   L.push('| faq_open | An FAQ answer opens | question |');
   L.push(`| cta_click | A booking, share${f.videoReady ? ', film' : ''}${f.profilePdf ? ', PDF' : ''} or download button, or an email link | cta, and for or door |`, '');
-  L.push('Without the script tag the page sends nothing, and it never sets cookies, so it also works opened from disk.', '');
+  L.push('On the AWS page the door property is always aws. Without the script tag the pages send nothing, and they never set cookies, so they also work opened from disk.', '');
   L.push('## Addresses to test', '');
-  L.push('- `/banks?lang=vi` and `/banks?lang=en` pick the language. Without `lang`, a browser set to Vietnamese gets Vietnamese.');
-  L.push('- `/banks?door=aws` opens the AWS door.');
-  L.push('- `/banks?for=Example+Bank&uc=contact-centre,governed-analytics` shows a greeting for Example Bank and puts those two use cases first.');
-  L.push('- `#deploy=region`, `#deploy=localzone` and `#deploy=onprem` set the diagram.', '');
+  L.push(`- \`${banks.pg.path}?lang=vi\` and \`${banks.pg.path}?lang=en\` pick the language, and the same on \`${aws.pg.path}\`. Without \`lang\`, a browser set to Vietnamese gets Vietnamese.`);
+  L.push(`- \`${banks.pg.path}?door=aws\` opens the older AWS door inside the banks page.`);
+  L.push(`- \`${banks.pg.path}?for=Example+Bank&uc=contact-centre,governed-analytics\` shows a greeting for Example Bank and puts those two use cases first.`);
+  L.push(`- \`#deploy=region\` and \`#deploy=localzone\` set the diagram on both pages, and \`#deploy=onprem\` on the banks page.`, '');
   L.push('## Before announcing', '');
-  L.push('- On a phone, /banks and /banks/ open the bank door, and /aws opens the AWS door.');
-  L.push('- Click a button on the live page and check that the click shows up in Vercel Analytics.');
-  if (f.videoReady) L.push('- Press play on the poster on the live page: the film opens in the page and plays.');
-  if (pdfs) L.push('- Press Download PDF on the live page, once in English and once in Vietnamese: each gives a PDF in that language.');
+  L.push(`- On a phone, ${banks.pg.path} and ${banks.pg.path}/ open the banks page, and ${aws.pg.path} and ${aws.pg.path}/ open the AWS page.`);
+  L.push('- Click a button on each live page and check that the click shows up in Vercel Analytics.');
+  if (f.videoReady) L.push('- Press play on the poster on the live banks page: the film opens in the page and plays.');
+  if (pdfCount) L.push('- Press Download PDF on each live page, once in English and once in Vietnamese: each gives a PDF in that language.');
   return `${L.join('\n')}\n`;
 }
 
 // Preview image ---------------------------------------------------------------
 
 function ogHtml() {
-  const C = content.en;
   const t = (x) => escHtml(text(x, 'en', false));
+  const headline = gens.en.meta.headline;
   const sprite = (template.match(/<svg class="sprite"[\s\S]*?<\/svg>/) || [''])[0];
   const chips = gens.en.creds.map((c) => (c.badge
     ? `<li class="b"><span style="display:block;width:${logos[c.badge].w}px;height:${logos[c.badge].h}px;background:url('${logos[c.badge].src}') center/contain no-repeat"></span></li>`
@@ -851,12 +953,13 @@ li.b{padding:0;border:0;background:none}
 li{display:flex;align-items:center;gap:10px;padding:8px 16px 8px 12px;border:1px solid #262626;border-radius:999px;background:rgba(245,245,245,.03);font:500 19px/1.2 'Geist',sans-serif}
 .ic{width:22px;height:22px;fill:none;stroke:#81C828;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round}
 h1{margin:24px 0 24px;font:600 92px/1.02 'Geist',sans-serif;letter-spacing:-0.04em}
+h1.s{font-size:76px}
 p{margin:0;max-width:1000px;font:400 30px/1.35 'Geist',sans-serif;color:#A3A3A3}
 </style></head><body>${sprite}<div class="g"></div><div class="grid"></div><div class="in">
-<div class="top"><div class="wm">coderpush<span>.</span></div><div class="u">coderpush.com/banks</div></div>
+<div class="top"><div class="wm">coderpush<span>.</span></div><div class="u">coderpush.com${page.path}</div></div>
 <ul>${chips}</ul>
-<h1>${t(C.hero.bank.headline)}</h1>
-<p>${t(C.hero.bank.subline)}</p>
+<h1${headline.length > 40 ? ' class="s"' : ''}>${escHtml(headline)}</h1>
+<p>${escHtml(gens.en.meta.description)}</p>
 </div></body></html>`;
 }
 
@@ -885,12 +988,12 @@ function pngComplete(file) {
 
 async function renderOg(outFile) {
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'banks-og-'));
-  const page = path.join(tmp, 'og.html');
-  fs.writeFileSync(page, ogHtml());
+  const src = path.join(tmp, 'og.html');
+  fs.writeFileSync(src, ogHtml());
   const done = (by) => {
     const [w, h] = pngSize(outFile);
     if (w === 1200 && h === 630) return by;
-    warnings.push(`og-banks.png came out ${w} by ${h} instead of 1200 by 630.`);
+    warnings.push(`${page.og} came out ${w} by ${h} instead of 1200 by 630.`);
     return by;
   };
   try {
@@ -901,7 +1004,7 @@ async function renderOg(outFile) {
       try {
         const browser = await chromium.launch();
         const tab = await browser.newPage({ viewport: { width: 1200, height: 630 } });
-        await tab.goto(pathToFileURL(page).href, { waitUntil: 'networkidle' });
+        await tab.goto(pathToFileURL(src).href, { waitUntil: 'networkidle' });
         await tab.evaluate(() => document.fonts.ready);
         await tab.screenshot({ path: outFile });
         await browser.close();
@@ -919,7 +1022,7 @@ async function renderOg(outFile) {
     const proc = spawn(chrome, [
       '--headless=new', '--disable-gpu', '--hide-scrollbars', '--no-first-run', '--no-default-browser-check',
       '--force-device-scale-factor=1', `--user-data-dir=${path.join(tmp, 'profile')}`, '--window-size=1200,630',
-      '--virtual-time-budget=10000', `--screenshot=${shot}`, pathToFileURL(page).href,
+      '--virtual-time-budget=10000', `--screenshot=${shot}`, pathToFileURL(src).href,
     ], { stdio: 'ignore' });
     let exited = false;
     const gone = new Promise((resolve) => { proc.once('exit', () => { exited = true; resolve(); }); proc.once('error', () => { exited = true; resolve(); }); });
@@ -932,7 +1035,7 @@ async function renderOg(outFile) {
       fs.copyFileSync(shot, outFile);
       return done('Chrome');
     }
-    warnings.push('Chrome did not render og-banks.png within a minute.');
+    warnings.push(`Chrome did not render ${page.og} within a minute.`);
     return null;
   } finally {
     try { fs.rmSync(tmp, { recursive: true, force: true, maxRetries: 10, retryDelay: 200 }); } catch { /* it is in the temp folder anyway */ }
@@ -940,18 +1043,22 @@ async function renderOg(outFile) {
 }
 
 function report() {
+  use(built[0]);
   const on = (o) => Object.entries(o).filter(([, v]) => v === true).map(([k]) => k);
   const shown = gens.en.team.map((p) => `${p.name}${p.photo ? '' : ' (no photo, initials shown)'}`).join(', ');
   const flagsOn = on(cfg.flags).concat(cfg.flags.aiPolicyUrl ? ['aiPolicyUrl'] : []);
-  console.log(`\nBuilt /banks for ${today}`);
+  console.log(`\nBuilt ${built.map((b) => b.pg.path).join(' and ')} for ${today}`);
   console.log(`  clients named: ${on(cfg.clients).join(', ') || 'none, fallback wording everywhere'}`);
   console.log(`  team shown:    ${shown}`);
   console.log(`  flags on:      ${flagsOn.join(', ') || 'none'}`);
   console.log(`  links:         booking ${cfg.links.booking || '-'}, email ${cfg.links.email || '-'}, AWS ${cfg.links.awsContactEmail || '-'}`);
-  console.log(`  wrote ${path.relative(ROOT, path.join(outDir, 'banks.html')) || 'banks.html'} (${kb(bytes)}), HANDOVER.md${ogBy ? `, og-banks.png (${ogBy})` : ''}`);
-  console.log('  checks passed: no em or en dash, no unapproved client or hidden person, under 150 KB');
-  if (pdfs) console.log(`  PDFs:          ${pdfs.map((x) => `${x.name} (${x.pages} pages, ${kb(x.data.length)})`).join(', ')}`);
-  if (filmOut) console.log(`  film:          ${FILES.film} (${film.duration || 'length unknown'}, ${mb(filmOut.bytes)}, about ${mb(filmOut.sent)} as sent) and ${FILES.poster}, written next to the page`);
+  for (const b of built) {
+    const where = path.relative(ROOT, path.join(outDir, b.pg.file)) || b.pg.file;
+    console.log(`  wrote ${where} (${kb(b.bytes)})${b.ogBy ? `, ${b.pg.og} (${b.ogBy})` : ''}${b.pdfs ? `, ${b.pdfs.map((x) => `${x.name} (${x.pages} pages, ${kb(x.data.length)})`).join(', ')}` : ''}`);
+  }
+  console.log('  wrote HANDOVER.md');
+  console.log('  checks passed: no em or en dash, no unapproved client or hidden person, no banned wording on the AWS page, each page under 150 KB');
+  if (filmOut) console.log(`  film:          ${FILES.film} (${film.duration || 'length unknown'}, ${mb(filmOut.bytes)}, about ${mb(filmOut.sent)} as sent) and ${FILES.poster}, written next to the banks page`);
   const wanted = ['coderpush', 'aws-advanced-tier', 'aws-ai-competency', ...(cfg.flags.isoMark ? ['iso-27001'] : []), ...Object.keys(cfg.clients).filter((k) => cfg.clients[k])];
   const used = gens.en.logosUsed;
   console.log(`  logos:         ${used.length ? `${used.join(', ')} (${kb(used.reduce((n, k) => n + logos[k].bytes, 0))} embedded)` : 'none yet'}`);

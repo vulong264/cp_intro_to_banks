@@ -1,8 +1,8 @@
-# /banks: handover for the web team
+# /banks and /aws: handover for the web team
 
-Build of 2026-10-01: banks.html is 141.1 KB, sha256 2dbb373f050b.
+Build of 2026-10-02: banks.html is 142.4 KB, sha256 73a6fb210df7; aws.html is 142.4 KB, sha256 f6e08c122480.
 
-**Not ready to go live.** config.json has no links.email, so the footer and the privacy note have no contact address. config.json has no links.awsContactEmail, so the AWS door has no contact address. LV will send a new build.
+**Not ready to go live.** config.json has no links.email, so the footer and the privacy note have no contact address. config.json has no links.awsContactEmail, so "Share an opportunity" on the AWS page and the AWS door has no recipient. LV will send a new build.
 
 ## Files
 
@@ -16,42 +16,51 @@ Build of 2026-10-01: banks.html is 141.1 KB, sha256 2dbb373f050b.
 | coderpush-banks-profile-aws-en.pdf | public/banks/coderpush-banks-profile-aws-en.pdf |
 | coderpush-banks-profile-vi.pdf | public/banks/coderpush-banks-profile-vi.pdf |
 | coderpush-banks-profile-aws-vi.pdf | public/banks/coderpush-banks-profile-aws-vi.pdf |
+| aws.html | public/aws/index.html |
+| og-aws.png | public/aws/og-aws.png |
+| coderpush-aws-profile-en.pdf | public/aws/coderpush-aws-profile-en.pdf |
+| coderpush-aws-profile-vi.pdf | public/aws/coderpush-aws-profile-vi.pdf |
 
-banks.html is the whole page: both doors, both languages, and all CSS and JavaScript inline. It has its own header and footer and no main-site navigation. There is no build step, no environment variable and no server code. Each new build from LV replaces index.html; please do not edit the file by hand.
+There are two pages. banks.html is the page for banks at coderpush.com/banks. aws.html is the page for AWS teams at coderpush.com/aws: the same design, with its own copy and use cases. Each is whole in one file, in both languages, with all CSS and JavaScript inline, its own header and footer and no main-site navigation. There is no build step, no environment variable and no server code. Each new build from LV replaces both index.html files; please do not edit them by hand.
 
-banks-film.html is the overview film: one self-contained file of 1.9 MB, about 1.4 MB as sent compressed. The page fetches it only when a visitor presses play, then shows it in a frame inside the page. Each new build replaces it together with index.html.
+aws.html asks search engines not to list it, since it is shared by link with AWS teams.
 
-The film and its poster are addressed relative to the page. That works at /banks/ with the trailing slash, which is how the site serves pages. If the page is ever served at /banks without the slash, it switches to /banks/ addresses by itself.
+banks-film.html is the overview film: one self-contained file of 1.9 MB, about 1.4 MB as sent compressed. The banks page fetches it only when a visitor presses play, then shows it in a frame inside the page. The AWS page has no film. Each new build replaces the film together with index.html.
 
 The site must allow its own pages to be shown in a frame on the same site. Today it sends no X-Frame-Options header and no frame-ancestors rule, so nothing needs changing. If one is added later, keep the same origin allowed for /banks/banks-film.html.
 
-The 4 PDF files are the page itself, printed for A4 paper: one per language, for the bank door and for the AWS door. The Download PDF button in the header and at the end of the page fetches the one for the language and door in view. They are addressed relative to the page, like the film, and each new build replaces them.
+The 6 PDF files are the pages themselves, printed for A4 paper, one per language and view. The Download PDF button in the header and at the end of each page fetches the one for the language in view. Each new build replaces them.
+
+Files next to a page are addressed relative to it. That works at /banks/ and /aws/ with the trailing slash, which is how the site serves pages. If a page is ever served without the slash, it switches to addresses with the slash by itself.
 
 ## Routing
 
-coderpush.com is a Next.js site on Vercel with trailing slashes, so the page must answer at both /banks and /banks/. Merge this into next.config.js:
+coderpush.com is a Next.js site on Vercel with trailing slashes, so each page must answer with and without the slash. Merge this into next.config.js:
 
 ```js
 async rewrites() {
   return [
     { source: '/banks', destination: '/banks/index.html' },
     { source: '/banks/', destination: '/banks/index.html' },
+    { source: '/aws', destination: '/aws/index.html' },
+    { source: '/aws/', destination: '/aws/index.html' },
   ];
 },
 async redirects() {
   return [
     // Temporary until launch week, then set permanent: true.
-    { source: '/aws', destination: '/banks?door=aws', permanent: false },
     { source: '/pitchdeck', destination: '/banks', permanent: false },
   ];
 },
 ```
 
+/aws used to be a redirect to /banks?door=aws. Remove that redirect: /aws now has its own page.
+
 ## Analytics
 
 1. Turn on Vercel Web Analytics for the project if it is not on.
-2. Paste its script tag from the Vercel dashboard just before `</head>` in public/banks/index.html. Paste it again whenever a new build replaces the file.
-3. Custom events need the Pro plan. The page sends these, each with at most two properties:
+2. Paste its script tag from the Vercel dashboard just before `</head>` in public/banks/index.html and public/aws/index.html. Paste it again whenever a new build replaces the files.
+3. Custom events need the Pro plan. The pages send these, each with at most two properties:
 
 | Event | When | Properties |
 | --- | --- | --- |
@@ -62,18 +71,18 @@ async redirects() {
 | faq_open | An FAQ answer opens | question |
 | cta_click | A booking, share, film, PDF or download button, or an email link | cta, and for or door |
 
-Without the script tag the page sends nothing, and it never sets cookies, so it also works opened from disk.
+On the AWS page the door property is always aws. Without the script tag the pages send nothing, and they never set cookies, so they also work opened from disk.
 
 ## Addresses to test
 
-- `/banks?lang=vi` and `/banks?lang=en` pick the language. Without `lang`, a browser set to Vietnamese gets Vietnamese.
-- `/banks?door=aws` opens the AWS door.
+- `/banks?lang=vi` and `/banks?lang=en` pick the language, and the same on `/aws`. Without `lang`, a browser set to Vietnamese gets Vietnamese.
+- `/banks?door=aws` opens the older AWS door inside the banks page.
 - `/banks?for=Example+Bank&uc=contact-centre,governed-analytics` shows a greeting for Example Bank and puts those two use cases first.
-- `#deploy=region`, `#deploy=localzone` and `#deploy=onprem` set the diagram.
+- `#deploy=region` and `#deploy=localzone` set the diagram on both pages, and `#deploy=onprem` on the banks page.
 
 ## Before announcing
 
-- On a phone, /banks and /banks/ open the bank door, and /aws opens the AWS door.
-- Click a button on the live page and check that the click shows up in Vercel Analytics.
-- Press play on the poster on the live page: the film opens in the page and plays.
-- Press Download PDF on the live page, once in English and once in Vietnamese: each gives a PDF in that language.
+- On a phone, /banks and /banks/ open the banks page, and /aws and /aws/ open the AWS page.
+- Click a button on each live page and check that the click shows up in Vercel Analytics.
+- Press play on the poster on the live banks page: the film opens in the page and plays.
+- Press Download PDF on each live page, once in English and once in Vietnamese: each gives a PDF in that language.

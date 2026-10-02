@@ -27,6 +27,7 @@ const fileUrl = pathToFileURL(path.join(DIST, 'banks.html')).href;
 const results = [];
 results.push(['copy', await run('copy.mjs')]);
 results.push(['page', await run('page.mjs', [`http://127.0.0.1:${GZIP}/banks/`, fileUrl, `http://127.0.0.1:${PLAIN}/banks.html`])]);
+if (fs.existsSync(path.join(DIST, 'aws.html'))) results.push(['aws page', await run('aws.mjs', [`http://127.0.0.1:${GZIP}`, pathToFileURL(path.join(DIST, 'aws.html')).href])]);
 if (fs.existsSync(path.join(DIST, 'coderpush-banks-profile-en.pdf'))) results.push(['pdf', await run('pdf.mjs')]);
 else console.log('\nPDF checks skipped: dist/ has no PDFs (flags.profilePdf is off)');
 if (fs.existsSync(path.join(DIST, 'banks-film.html'))) {
