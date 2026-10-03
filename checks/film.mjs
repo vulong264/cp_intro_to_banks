@@ -138,7 +138,7 @@ try {
   await m.viewport(740, 360, true);
   await sleep(500);
   const ls = await m.eval(PAGE_STATE);
-  const closeBox = await m.eval(`(() => { const r = document.querySelector('#vid [data-close]').getBoundingClientRect(); const a = document.querySelector('#vid .vd-bar a.vi.d-bank'); return { x: Math.round(r.left), y: Math.round(r.top), w: Math.round(r.width), h: Math.round(r.height), book: getComputedStyle(a).display }; })()`);
+  const closeBox = await m.eval(`(() => { const r = document.querySelector('#vid [data-close]').getBoundingClientRect(); const a = document.querySelector('#vid .vd-bar a.vi'); return { x: Math.round(r.left), y: Math.round(r.top), w: Math.round(r.width), h: Math.round(r.height), book: getComputedStyle(a).display }; })()`);
   check('phone on its side: the film fills the height, Close stays in the corner', ls.stage[3] === 360 && Math.abs(ls.stage[2] - 640) <= 1 && closeBox.w > 0 && closeBox.y < 60 && closeBox.book === 'none', JSON.stringify({ stage: ls.stage, dialog: ls.dialog, closeBox }));
   await m.click('#vid [data-close]');
   await sleep(300);

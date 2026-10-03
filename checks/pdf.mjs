@@ -13,7 +13,6 @@ const BANKS = ['Production AI for Vietnamese banks | CoderPush', 'coderpush.com/
 const AWS = ['Production AI for Vietnamese banks, on AWS | CoderPush', 'coderpush.com/aws'];
 const FILES = [
   ['coderpush-banks-profile-en.pdf', 'en', ...BANKS], ['coderpush-banks-profile-vi.pdf', 'vi', ...BANKS],
-  ['coderpush-banks-profile-aws-en.pdf', 'en', ...BANKS], ['coderpush-banks-profile-aws-vi.pdf', 'vi', ...BANKS],
   ['coderpush-aws-profile-en.pdf', 'en', ...AWS], ['coderpush-aws-profile-vi.pdf', 'vi', ...AWS],
 ];
 for (const [name, lang, title, address] of FILES) {

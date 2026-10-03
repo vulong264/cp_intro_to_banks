@@ -25,12 +25,12 @@ It writes into dist/:
 
 | File | What it is |
 | --- | --- |
-| banks.html | The page for banks, with its bank door and its older AWS door |
+| banks.html | The page for banks |
 | aws.html | The page for AWS teams |
 | HANDOVER.md | The note for the web team: where the files go, routing, analytics, what to test |
 | og-banks.png, og-aws.png | The link-preview images, when a local Chrome or Playwright is available |
 | banks-film.html, banks-film-poster.webp | The overview film and its poster, while flags.videoReady is on |
-| coderpush-banks-profile-*.pdf, coderpush-aws-profile-*.pdf | Each page as a PDF for A4 paper, one per language and view, while flags.profilePdf is on |
+| coderpush-banks-profile-*.pdf, coderpush-aws-profile-*.pdf | Each page as a PDF for A4 paper, one per language, while flags.profilePdf is on |
 
 The PDFs are printed from the finished page with a local Chrome, so a build with flags.profilePdf on
 needs Chrome and a network connection for the font. How they look is decided by the print styles in
@@ -58,9 +58,12 @@ shared copy:
 
 So a change to the shared copy reaches the AWS page too, unless the AWS page overrides that string.
 
-The page has no film, asks search engines not to list it, and has two places for the data to live:
-an AWS Region and the Hanoi Local Zone. The build stops if its output contains on-prem wording, the
-word Copilot, or a data centre of the bank's own, in either language. The patterns are in `PAGES`.
+The page has no film, and has two places for the data to live: an AWS Region and the Hanoi Local
+Zone. The build stops if its output contains on-prem wording, the word Copilot, or a data centre of
+the bank's own, in either language. The patterns are in `PAGES`. Nothing written for AWS teams is in
+the banks page: an old link to its former AWS door, `/banks?door=aws`, is sent on to `/aws`.
+
+Search engines may list both pages. Neither carries a noindex tag.
 
 ## Switches
 
@@ -72,21 +75,22 @@ file, not hidden in it.
 | clients.* | The fallback wording replaces the client's name everywhere, and its logo is left out |
 | people.* | The person is left off the team section |
 | flags.regulationDates | The clock shows only its first line |
-| flags.oneDayReply | The AWS door drops the one-business-day promise |
+| flags.oneDayReply | The AWS page drops the one-business-day promise |
 | flags.videoReady | No film: no poster, no button, no film file in dist/ |
 | flags.profilePdf | No Download PDF buttons and no PDF files in dist/ |
 | flags.downloads | No buttons for the one-page brief and the deck, which are separate files |
-| flags.marketplace | No Marketplace line on the AWS door |
+| flags.marketplace | No Marketplace line on the AWS page |
 | flags.isoMark | ISO/IEC 27001 shows as text only |
 | flags.aiPolicyUrl (empty) | No link to the AI principles |
 | links.booking (empty) | Booking buttons open an email to links.email |
+| links.awsContactEmail (empty) | "Share an opportunity" on the AWS page has no recipient, and falls back to links.email |
 
 ## Addresses
 
 | Address | Effect |
 | --- | --- |
 | `?lang=vi`, `?lang=en` | The language. Without it, a browser set to Vietnamese gets Vietnamese |
-| `?door=aws` | The AWS door |
+| `/banks?door=aws` | Sent on to `/aws`, the page for AWS teams |
 | `?for=Example+Bank&uc=contact-centre,governed-analytics` | A greeting for that company, and those use cases first |
 | `#deploy=region`, `#deploy=localzone`, `#deploy=onprem` | The diagram's deployment option |
 

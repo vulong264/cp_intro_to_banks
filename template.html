@@ -8,7 +8,13 @@
   var d = document.documentElement, q = new URLSearchParams(location.search), l = q.get('lang');
   if (l !== 'en' && l !== 'vi') l = /^vi\b/i.test(navigator.language || '') ? 'vi' : 'en';
   d.lang = l;
-{{#unless gen.aws}}  if (q.get('door') === 'aws') d.setAttribute('data-door', 'aws');
+{{#unless gen.aws}}  // The AWS door of this page is now a page of its own: old links to it go there, with the same language.
+  if (q.get('door') === 'aws') {
+    q.delete('door');
+    var rest = q.toString();
+    location.replace((location.protocol === 'file:' ? '{{v gen.awsPage.file}}' : '{{v gen.awsPage.path}}/') + (rest ? '?' + rest : '') + location.hash);
+    return;
+  }
 {{/unless}}  if ((q.get('for') || '').trim()) d.setAttribute('data-for', '');
   var pp = '{{v gen.page.path}}';
   window.__b = location.pathname.slice(-pp.length) === pp ? pp + '/' : '';
@@ -19,8 +25,7 @@
 <title>{{a meta.title}}</title>
 <meta name="description" content="{{a gen.meta.description}}">
 <link rel="canonical" href="{{v gen.page.url}}">
-{{#if gen.page.noindex}}<meta name="robots" content="noindex">
-{{/if}}
+
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="CoderPush">
 <meta property="og:title" content="{{a meta.title}}">
@@ -79,7 +84,6 @@ html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 button { font: inherit; color: inherit; }
 body { margin: 0; background: var(--bg); color: var(--tx); font-family: var(--f); font-size: 17px; line-height: var(--lh); -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
 html[lang=vi] .en, html:not([lang=vi]) .vi { display: none !important; }
-html[data-door=aws] .d-bank, html:not([data-door=aws]) .d-aws { display: none !important; }
 h1, h2, h3, p, ul, ol, figure, fieldset, dl, dd { margin: 0; }
 ul, ol { padding: 0; list-style: none; }
 a { color: var(--ac); text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; }
@@ -499,18 +503,17 @@ html:not(.js) .vp, html:not(.js) [data-video] { display: none; }
 <div class="w">
 <ul class="creds">{{#each gen.creds as c}}{{#if c.badge}}<li class="has-badge"><span class="logo L-{{v c.badge}}" aria-hidden="true"></span><span class="vh">{{t c.text}}</span></li>{{else}}<li><svg class="ic" aria-hidden="true"><use href="#i-{{v c.icon}}"/></svg><span>{{t c.text}}</span></li>{{/if}}{{/each}}</ul>
 <p class="pf">{{r gen.preparedFor}} <a href="#privacy">{{t ui.privacyLink}}</a></p>
-{{#unless gen.aws}}<h1 class="d-bank">{{t hero.bank.headline}}</h1>
-{{/unless}}<h1 class="d-aws">{{t hero.aws.headline}}</h1>
+<h1>{{#if gen.aws}}{{t hero.aws.headline}}{{else}}{{t hero.bank.headline}}{{/if}}</h1>
 <div class="hr{{#if gen.film}} has-v{{/if}}">
 <div class="hm">
-{{#unless gen.aws}}<div class="d-bank">
+{{#unless gen.aws}}<div>
 <p class="sub">{{t hero.bank.subline}}</p>
 <div class="btns">
 {{#lang}}<a class="btn {{@lang}}" href="{{a gen.href.book}}"{{#if cfg.links.booking}} target="_blank" rel="noopener"{{/if}} data-cta="hero-book">{{t hero.bank.book}}<svg class="ic" aria-hidden="true"><use href="#i-arrow"/></svg></a>{{/lang}}
 {{#if gen.film}}<a class="btn btn2" href="{{v gen.video.file}}" data-file="{{v gen.video.file}}" data-video data-cta="hero-video"><svg class="ic l" aria-hidden="true"><use href="#i-play"/></svg>{{t hero.bank.video}}</a>{{/if}}
 </div>
 </div>
-{{/unless}}<div class="d-aws">
+{{else}}<div>
 <p class="sub">{{t hero.aws.subline}}</p>
 <p class="why">{{t hero.aws.whyNow}}</p>
 <div class="btns">
@@ -518,7 +521,7 @@ html:not(.js) .vp, html:not(.js) [data-video] { display: none; }
 {{#if cfg.flags.downloads}}{{#lang}}<a class="btn btn2 {{@lang}}" href="{{a gen.href.brief}}" download data-cta="hero-brief"><svg class="ic l" aria-hidden="true"><use href="#i-download"/></svg>{{t hero.aws.brief}}</a>{{/lang}}{{/if}}
 </div>
 </div>
-<ul class="strip">{{#each hero.proofStrip as s}}<li{{#if s.live}} class="live"{{/if}}><span class="dot"></span><span>{{t s.text}}</span></li>{{/each}}</ul>
+{{/unless}}<ul class="strip">{{#each hero.proofStrip as s}}<li{{#if s.live}} class="live"{{/if}}><span class="dot"></span><span>{{t s.text}}</span></li>{{/each}}</ul>
 </div>
 {{#if gen.film}}<a class="vp" href="{{v gen.video.file}}" data-file="{{v gen.video.file}}" data-video data-cta="poster-video">
 <img data-file="{{v gen.video.poster}}" alt="" width="960" height="540">
@@ -641,8 +644,7 @@ html:not(.js) .vp, html:not(.js) [data-video] { display: none; }
 {{#if u.proof}}<p class="kv"><svg class="ic" aria-hidden="true"><use href="#i-checkc"/></svg><span><b class="kl">{{t useCases.labels.proof}}</b>{{t u.proof}}</span></p>{{/if}}
 </article>
 {{/each}}</div>
-{{else}}<div class="d-bank">
-<h2 class="rv">{{t useCases.headline}}</h2>
+{{else}}<h2 class="rv">{{t useCases.headline}}</h2>
 <div class="grid ucs">
 {{#each gen.useCases as u}}<article class="card uc rv" data-uc="{{v u.key}}">
 <div class="ch"><span class="it"><svg class="ic" aria-hidden="true"><use href="#i-{{v u.icon}}"/></svg></span><span class="tag">{{t ui.picked}}</span></div>
@@ -652,11 +654,6 @@ html:not(.js) .vp, html:not(.js) [data-video] { display: none; }
 <p class="kv"><svg class="ic" aria-hidden="true"><use href="#i-checkc"/></svg><span>{{t u.proof}}</span></p>
 </article>
 {{/each}}</div>
-</div>
-<div class="d-aws">
-<h2 class="rv">{{t aws.when.headline}}</h2>
-<ul class="grid chk">{{#each aws.when.items as x}}<li class="rv"><svg class="ic" aria-hidden="true"><use href="#i-checkc"/></svg><span>{{t x}}</span></li>{{/each}}</ul>
-</div>
 {{/if}}</div>
 </section>
 
@@ -682,10 +679,10 @@ html:not(.js) .vp, html:not(.js) [data-video] { display: none; }
 <ol class="steps">{{#each gen.steps as s}}<li class="rv"><div class="sh"><span class="it"><svg class="ic" aria-hidden="true"><use href="#i-{{v s.icon}}"/></svg></span><span class="no">{{v s.no}}</span></div><h3>{{t s.title}}</h3><p>{{t s.body}}</p></li>{{/each}}</ol>
 <div class="meas rv"><p>{{t safety.measurement}}</p></div>
 {{#if cfg.flags.aiPolicyUrl}}<p class="more"><a href="{{v cfg.flags.aiPolicyUrl}}" data-cta="safety-principles">{{t safety.principles}}</a></p>{{/if}}
-<div class="d-aws grid aw">
+{{#if gen.aws}}<div class="grid aw">
 <div class="card rv"><h3>{{t aws.not.headline}}</h3><p>{{t aws.not.text}}</p></div>
 <div class="card rv"><h3>{{t aws.gains.headline}}</h3><p>{{t aws.gains.text}}</p>{{#if cfg.flags.marketplace}}<p>{{t aws.gains.marketplace}}</p>{{/if}}</div>
-</div>
+</div>{{/if}}
 </div>
 </section>
 
@@ -706,14 +703,14 @@ html:not(.js) .vp, html:not(.js) [data-video] { display: none; }
 
 <section class="sec" id="offer" data-sec="offer">
 <div class="w">
-{{#unless gen.aws}}<div class="d-bank">
+{{#unless gen.aws}}<div>
 <h2 class="rv">{{t offer.headline}}</h2>
 <ol class="phases">{{#each gen.phases as f}}<li class="rv"><span class="it"><svg class="ic" aria-hidden="true"><use href="#i-{{v f.icon}}"/></svg></span><h3>{{t f.title}}</h3><p>{{t f.body}}</p></li>{{/each}}</ol>
 <p class="line rv">{{t offer.line}}</p>
 <ul class="chips rv">{{#each gen.waysIn as x}}<li><svg class="ic" aria-hidden="true"><use href="#i-{{v x.icon}}"/></svg><span>{{t x.text}}</span></li>{{/each}}</ul>
 <div class="btns">{{#lang}}<a class="btn {{@lang}}" href="{{a gen.href.book}}"{{#if cfg.links.booking}} target="_blank" rel="noopener"{{/if}} data-cta="offer-book">{{t offer.button}}<svg class="ic" aria-hidden="true"><use href="#i-arrow"/></svg></a>{{/lang}}</div>
 </div>
-{{/unless}}<div class="d-aws">
+{{else}}<div>
 <h2 class="rv">{{t aws.engage.headline}}</h2>
 <ul class="eng rv">
 <li>{{t aws.engage.share}}</li>
@@ -723,7 +720,7 @@ html:not(.js) .vp, html:not(.js) [data-video] { display: none; }
 </ul>
 <details class="qs rv"><summary><span>{{t aws.engage.questionsTitle}}</span></summary><ol>{{#each aws.engage.questions as x}}<li>{{t x}}</li>{{/each}}</ol></details>
 </div>
-</div>
+{{/unless}}</div>
 </section>
 
 <section class="sec alt" id="faq" data-sec="faq">
@@ -755,7 +752,7 @@ html:not(.js) .vp, html:not(.js) [data-video] { display: none; }
 <p class="vh" id="vid-t">{{t hero.bank.video}}</p>
 <div class="vs" data-film="{{v gen.video.file}}?autoplay=0" data-poster="{{v gen.video.poster}}"></div>
 <div class="vd-bar">
-{{#lang}}<a class="btn d-bank {{@lang}}" href="{{a gen.href.intro}}"{{#if cfg.links.booking}} target="_blank" rel="noopener"{{/if}} data-cta="video-intro">{{t faq.button}}<svg class="ic" aria-hidden="true"><use href="#i-arrow"/></svg></a><a class="btn d-aws {{@lang}}" href="{{a gen.href.share}}" data-cta="video-share">{{t hero.aws.share}}<svg class="ic" aria-hidden="true"><use href="#i-arrow"/></svg></a>{{/lang}}
+{{#lang}}<a class="btn {{@lang}}" href="{{a gen.href.intro}}"{{#if cfg.links.booking}} target="_blank" rel="noopener"{{/if}} data-cta="video-intro">{{t faq.button}}<svg class="ic" aria-hidden="true"><use href="#i-arrow"/></svg></a>{{/lang}}
 <button class="btn btn2" type="button" data-close autofocus>{{t ui.video.close}}</button>
 </div>
 </dialog>
@@ -814,19 +811,17 @@ html:not(.js) .vp, html:not(.js) [data-video] { display: none; }
       });
     }
 
-    // Language switch: updates the URL without a reload and keeps the reader in place. The door comes only from ?door=aws.
+    // Language switch: updates the URL without a reload and keeps the reader in place.
     function sync() {
       all('[data-lang-btn]').forEach(function (b) { b.setAttribute('aria-pressed', String(b.getAttribute('data-lang-btn') === lang())); });
-      // The PDF link follows the language and the door in view.
+      // The PDF link follows the language in view.
       all('[data-pdf]').forEach(function (a) {
-        a.setAttribute('href', (W.__b || '') + a.getAttribute('data-pdf') + {{#unless gen.aws}}(door() === 'aws' ? 'aws-' : '') + {{/unless}}lang() + '.pdf');
+        a.setAttribute('href', (W.__b || '') + a.getAttribute('data-pdf') + lang() + '.pdf');
       });
     }
     function setUrl() {
       var q = location.search.replace(/^\?/, '').split('&').filter(function (p) { return p && !/^(lang|door)=/.test(p); });
       q.push('lang=' + lang());
-{{#unless gen.aws}}      if (door() === 'aws') q.push('door=aws');
-{{/unless}}
       try { history.replaceState(history.state, '', '?' + q.join('&') + location.hash); } catch (e) {}
     }
     function anchor() {

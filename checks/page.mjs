@@ -1,6 +1,7 @@
 // The checks of SPEC.md section 9 for dist/banks.html, driven through Chrome DevTools.
 // run.mjs starts the servers and calls this. On its own: node checks/page.mjs <httpBase> <fileUrl> [plainHttpBase]
 // They describe the page as config.json has it today: clients named, three experts shown, the film on.
+// The page for AWS teams has its own checks in aws.mjs.
 import { launch, sleep } from './cdp.mjs';
 const [HTTP, FILE, PLAIN] = process.argv.slice(2);
 const results = [];
@@ -8,12 +9,12 @@ const ok = (name, pass, detail = '') => { results.push({ name, pass, detail }); 
 const b = await launch(9340);
 let p = await b.newPage();
 const fresh = async () => { await p.close(); p = await b.newPage(); };
-const views = [['en', 'bank'], ['vi', 'bank'], ['en', 'aws'], ['vi', 'aws']];
-const q = (lang, door, extra = '') => `?lang=${lang}${door === 'aws' ? '&door=aws' : ''}${extra}`;
+const views = [['en', 'bank'], ['vi', 'bank']];
+const q = (lang, door, extra = '') => `?lang=${lang}${extra}`;
 const expectH1 = { 'en-bank': 'Production AI for Vietnamese banks.', 'vi-bank': 'AI vận hành thật cho ngân hàng Việt Nam.', 'en-aws': "Bring us in when a bank's AI is stuck at pilot.", 'vi-aws': 'Hãy gọi chúng tôi khi AI của ngân hàng mắc kẹt ở giai đoạn thử nghiệm.' };
 const visibleH1 = `[...document.querySelectorAll('h1')].filter(h => h.getClientRects().length).map(h => h.innerText.trim())`;
 
-// 1. Console errors and the four views, from disk and from local servers.
+// 1. Console errors and both languages, from disk and from local servers.
 for (const [label, base] of [['disk', FILE], ['server gzip', HTTP], ['server plain', PLAIN]].filter(([, x]) => x)) {
   for (const [lang, door] of views) {
     await fresh();
@@ -23,8 +24,9 @@ for (const [label, base] of [['disk', FILE], ['server gzip', HTTP], ['server pla
       const h1 = ${visibleH1};
       const other = document.querySelectorAll('${lang === 'en' ? '.vi' : '.en'}');
       const hiddenOther = [...other].every(e => !e.getClientRects().length);
-      const doorHidden = [...document.querySelectorAll('${door === 'aws' ? '.d-bank' : '.d-aws'}')].every(e => !e.getClientRects().length);
-      const doorShown = [...document.querySelectorAll('${door === 'aws' ? '.d-aws' : '.d-bank'}')].filter(e => !e.closest('dialog:not([open])')).every(e => e.getClientRects().length);
+      // The page has one audience now: nothing written for AWS teams is in it, shown or hidden.
+      const doorHidden = !/Share an opportunity|Chia sẻ cơ hội|When to bring us in|Khi nào nên gọi chúng tôi/.test(document.body.textContent);
+      const doorShown = document.querySelectorAll('.ucs .card').length === 6 && !!document.getElementById('offer').querySelector('.phases');
       return { lang: document.documentElement.lang, door: document.documentElement.getAttribute('data-door') || 'bank', h1, hiddenOther, doorHidden, doorShown, pressed: [...document.querySelectorAll('[aria-pressed=true]')].map(x => x.getAttribute('data-lang-btn')).join(','), doorSwitch: document.querySelectorAll('[data-door-btn], .sw-door').length };
     })()`);
     const good = st.lang === lang && st.door === door && st.h1.length === 1 && st.h1[0] === expectH1[`${lang}-${door}`] && st.hiddenOther && st.doorHidden && st.doorShown && st.pressed === lang && st.doorSwitch === 0;
@@ -53,7 +55,6 @@ let pl = await p.eval(`(() => ({
   order: [...document.querySelectorAll('.ucs [data-uc]')].map(c => c.getAttribute('data-uc')),
   tags: [...document.querySelectorAll('.ucs .tag')].filter(t => t.getClientRects().length).map(t => t.closest('[data-uc]').getAttribute('data-uc') + ':' + t.innerText.trim()),
   book: (() => { const a = document.querySelector('a[data-cta=hero-book].vi'); return { href: a.getAttribute('href'), target: a.getAttribute('target'), rel: a.getAttribute('rel') }; })(),
-  share: document.querySelector('a[data-cta=hero-share].vi').getAttribute('href'),
 }))()`);
 ok('personal link: greeting above the headline', pl.greet && pl.greet.startsWith('Dành riêng cho Example Bank'), pl.greet);
 ok('personal link: picked use cases first', pl.order.slice(0, 2).join() === 'contact-centre,governed-analytics' && pl.order.length === 6, pl.order.join());
@@ -62,7 +63,6 @@ ok('personal link: "Gợi ý riêng" tag on the picks only', pl.tags.join() === 
 const bookOk = pl.book.href.startsWith('mailto:') ? decodeURIComponent(pl.book.href).includes('Example Bank')
   : /^https:\/\//.test(pl.book.href) && pl.book.target === '_blank' && pl.book.rel === 'noopener';
 ok('personal link: the booking button opens the booking page in a new tab, or an email naming the company', bookOk, JSON.stringify(pl.book));
-ok('personal link: email subjects name the company', pl.share.startsWith('mailto:') && decodeURIComponent(pl.share).includes('Example Bank'), decodeURIComponent(pl.share));
 ok('personal link: no console errors', p.logs.length === 0, p.logs.join(' | '));
 
 // 4. A for value containing HTML shows as plain text; unknown keys ignored; 60-character cap.
@@ -117,7 +117,7 @@ for (const [lang, door] of views) {
   }
 }
 const bad = widths.filter((x) => !/: 360\/360$/.test(x));
-ok('360 px wide: no sideways scroll (4 views x 3 diagram states, panels open)', bad.length === 0, bad.join(' | ') || `${widths.length} layouts`);
+ok('360 px wide: no sideways scroll (2 languages x 3 diagram states, panels open)', bad.length === 0, bad.join(' | ') || `${widths.length} layouts`);
 
 // 7. Keyboard.
 await fresh();
@@ -263,7 +263,7 @@ await p.S('Emulation.setScriptExecutionDisabled', { value: false });
 const nojs = await p.eval(`(() => ({
   lang: document.documentElement.lang,
   enShown: [...document.querySelectorAll('.en')].some(e => e.getClientRects().length), viShown: [...document.querySelectorAll('.vi')].some(e => e.getClientRects().length),
-  bank: [...document.querySelectorAll('.d-bank')].filter(e => !e.closest('dialog:not([open])')).every(e => e.getClientRects().length), aws: [...document.querySelectorAll('.d-aws')].some(e => e.getClientRects().length),
+  bank: [...document.querySelectorAll('h1')].filter(e => e.getClientRects().length).map(e => e.innerText.trim()).join() === 'Production AI for Vietnamese banks.', aws: /Share an opportunity|When to bring us in/.test(document.body.textContent),
   pdf: [...document.querySelectorAll('a[data-pdf]')].map(a => a.getAttribute('href') + (a.getClientRects().length ? '' : ' hidden')).join(),
   film: [...document.querySelectorAll('.vp, [data-video]')].filter(e => e.getClientRects().length).length, heroCols: getComputedStyle(document.querySelector('.hr')).gridTemplateColumns.split(' ').length,
   faded: [...document.querySelectorAll('.rv')].filter(e => getComputedStyle(e).opacity !== '1').length,
@@ -324,7 +324,7 @@ const tm = await p.eval(`(async () => {
 ok('team shows Harley, Ben and Andy with photos, and Long is nowhere in the file', tm.names.length === 3 && tm.photos.every((w) => w === 192) && !tm.long && tm.initials === 0, JSON.stringify(tm));
 
 // 12e. The PDF download: one button in the header and one at the end, each pointing at the PDF of the view in sight.
-const wantPdf = { 'en-bank': 'coderpush-banks-profile-en.pdf', 'vi-bank': 'coderpush-banks-profile-vi.pdf', 'en-aws': 'coderpush-banks-profile-aws-en.pdf', 'vi-aws': 'coderpush-banks-profile-aws-vi.pdf' };
+const wantPdf = { 'en-bank': 'coderpush-banks-profile-en.pdf', 'vi-bank': 'coderpush-banks-profile-vi.pdf' };
 const wantLabel = { en: 'Download PDF', vi: 'Tải PDF' };
 for (const [lang, door] of views) {
   await fresh();
@@ -382,6 +382,14 @@ ok('print: switches, film and download buttons are left out, the booking button 
 ok('print: every answer is open and every part is visible', pr.closed === 0 && pr.faded === 0 && pr.built, JSON.stringify({ closed: pr.closed, faded: pr.faded, built: pr.built }));
 await sleep(300);
 ok('print: answers opened for printing are not counted as faq_open', (await p.eval(`(window.__ev || []).filter(e => e[1].name === 'faq_open').length`)) === 0);
+
+// 12g. The AWS door this page used to have is a page of its own now: an old link to it lands there.
+await fresh();
+await p.viewport(1280, 900);
+await p.goto(HTTP + '?door=aws&lang=vi&for=AWS+Vietnam#deploy=region');
+await sleep(400);
+const moved = await p.eval(`({ path: location.pathname, search: location.search, hash: location.hash, lang: document.documentElement.lang, door: document.documentElement.getAttribute('data-door'), h1: [...document.querySelectorAll('h1')].filter(h => h.getClientRects().length).map(h => h.innerText.trim()).join() })`);
+ok('an old link to the AWS door goes to the AWS page, with its language and the rest of the address', /\/aws(\/|\.html)$/.test(moved.path) && moved.search === '?lang=vi&for=AWS+Vietnam' && moved.hash === '#deploy=region' && moved.lang === 'vi' && moved.door === 'aws' && moved.h1.startsWith('Hãy gọi chúng tôi'), JSON.stringify(moved));
 
 // 13. Live numbers.
 await fresh();
